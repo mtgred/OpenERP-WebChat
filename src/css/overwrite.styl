@@ -1,0 +1,148 @@
+radius(radius)
+  -moz-border-radius: radius
+  -webkit-border-radius: radius
+  border-radius: radius
+
+vertical-gradient(startColor, endColor)
+  background: endColor
+  background: -moz-linear-gradient(startColor, endColor)
+  background: -webkit-gradient(linear, left top, left bottom, from(startColor), to(endColor))
+
+box-shadow()
+  -moz-box-shadow: arguments
+  -webkit-box-shadow: arguments
+  box-shadow: arguments
+
+opacity(opacity)
+  //filter: alpha(opacity=opacity * 100)
+  -khtml-opacity: opacity
+  -moz-opacity: opacity
+  opacity: opacity
+
+@font-face
+  font-family: 'EntypoRegular'
+  src: url('../font/entypo-webfont.eot') format('eot')
+  src: url('../font/entypo-webfont.eot?#iefix') format('embedded-opentype')
+  src: url('../font/entypo-webfont.woff') format('woff')
+  src: url('../font/entypo-webfont.ttf') format('truetype')
+  src: url('../font/entypo-webfont.svg') format('svg') active
+  font-weight: normal
+  font-style: normal
+
+.oe_e
+  font-family: "entypoRegular" !important
+  font-size: 36px
+  font-weight: 300 !important
+
+.close
+  font-size: 18px
+  line-height: 18px
+
+.navbar
+  .brand
+    margin-left: 0
+    padding: 8px 16px 8px
+  .nav
+    li
+      a
+        padding: 8px 12px
+      &:hover
+        color: #555555
+        text-decoration: none
+        background-color: #e5e5e5
+        box-shadow(inset 0 3px 8px rgba(0, 0, 0, 0.125))
+    .oe_e
+      line-height: 4px
+      margin-left: 3px
+      position: relative
+      top: 4px
+
+.navbar-inner
+  min-height: 36px
+
+// Colours
+border-color= #AEB9BD
+background-color = #E8EBEF
+
+* 
+  -moz-box-sizing: border-box
+  -webkit-box-sizing: border-box
+  box-sizing: border-box
+
+body
+  padding-top: 36px
+  background: url('../img/wood.png')
+  color: #4c4c4c
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5)
+
+ul, ol
+  padding: 0
+  margin: 0
+
+li
+  list-style-type: none
+
+form
+  margin: 0
+
+input, textarea
+  font-family: Lato, Helvetica, sans-serif
+  color: #333
+  padding: 2px 5px
+  border: 1px solid #AEB9BD
+  radius(3px)
+  box-shadow(inset 0 1px 4px rgba(0, 0, 0, 0.2))
+
+.chatapp
+  width: 210px
+  position: fixed
+  top: 37px
+  bottom: 0
+  right: -210px
+  background: background-color
+  border-left: 1px solid border-color
+  padding: 0 9px
+  vertical-align: top
+
+.chat-windows
+  position: absolute
+  bottom: 6px
+  right: 210px
+
+.pane
+  margin-right: 6px
+  background: rgba(0, 0, 0, .6)
+  radius(3px)
+  box-shadow 0 0 3px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.3)
+
+.chat-window
+  width: 280px
+  .chatview
+    position: relative
+    height: 400px
+    .messages
+      overflow: scroll
+      height: 358px
+      ul
+        padding: 3px
+    .msg
+      background: white
+      padding: 4px
+      margin: 4px
+      radius(3px)
+    header
+      padding: 4px 8px 
+      vertical-gradient(#fcfcfc, #dedede)
+      radius(3px 3px 0 0)
+      border-bottom: 1px solid border-color
+    footer
+      position: absolute
+      bottom: 0
+      left: 0
+      right: 0
+      padding: 5px
+      border-top: 1px solid border-color
+      vertical-gradient(#fcfcfc, #dedede)
+      radius(0 0 3px 3px)
+    .prompt
+      width: 100%
