@@ -1,5 +1,5 @@
 (function() {
-  var Chat, ChatApp, ChatMenuView, ChatView, MessageView, User, UserView, UsersView,
+  var Channel, ChatApp, ChatMenuView, ChatView, MessageView, User, UserView, UsersView,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -28,6 +28,8 @@
 
     UserView.prototype.className = 'user';
 
+    UserView.prototype.template = _.template($('#chat-user').html());
+
     UserView.prototype.initialize = function() {
       var _this = this;
       return this.model.bind('remove', function() {
@@ -35,10 +37,16 @@
       });
     };
 
-    UserView.prototype.template = _.template($('#chat-user').html());
+    UserView.prototype.events = {
+      'click': 'createChannel'
+    };
 
     UserView.prototype.render = function() {
       return $(this.el).html(this.template(this.model.toJSON()));
+    };
+
+    UserView.prototype.createChannel = function() {
+      return console.log(this.model.get('name'));
     };
 
     return UserView;
@@ -50,6 +58,8 @@
     __extends(UsersView, _super);
 
     function UsersView() {
+      this.filter = __bind(this.filter, this);
+      this.render = __bind(this.render, this);
       this.addUser = __bind(this.addUser, this);
       UsersView.__super__.constructor.apply(this, arguments);
     }
@@ -59,14 +69,50 @@
     UsersView.prototype.template = _.template($('#user-list').html());
 
     UsersView.prototype.initialize = function() {
+      var _this = this;
       this.collection.bind('add', this.addUser);
-      return $('.chatapp').append($(this.el).html(this.template({})));
+      this.collection.bind('reset', this.render);
+      $('.chatapp').append($(this.el).html(this.template({})));
+      return this.collection.each(function(user) {
+        return _this.addUser(user);
+      });
+    };
+
+    UsersView.prototype.events = {
+      'keyup .searchbox': 'filter'
     };
 
     UsersView.prototype.addUser = function(user) {
       return $(this.el).find('> ul').append((new UserView({
         model: user
       })).render());
+    };
+
+    UsersView.prototype.render = function() {
+      var _this = this;
+      $(this.el).find('> ul').empty();
+      return this.collection.each(function(user) {
+        return _this.addUser(user);
+      });
+    };
+
+    UsersView.prototype.filter = function() {
+      var s, u, _i, _len, _ref, _results;
+      s = $('.searchbox').val().toLowerCase();
+      if (s) {
+        $(this.el).find('> ul').empty();
+        _ref = this.collection.filter(function(u) {
+          return ~u.get('name').toLowerCase().indexOf(s);
+        });
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          u = _ref[_i];
+          _results.push(this.addUser(u));
+        }
+        return _results;
+      } else {
+        return this.render();
+      }
     };
 
     return UsersView;
@@ -113,7 +159,7 @@
     ChatView.prototype.initialize = function() {
       this.collection.bind('add', this.addMessage);
       return $('.chat-window').append($(this.el).html(this.template({
-        title: 'Foobar'
+        title: 'General'
       })));
     };
 
@@ -132,7 +178,7 @@
       var input;
       input = $(this.el).find('.prompt').val();
       if (input) {
-        chatapp.socket.send(JSON.stringify({
+        app.socket.send(JSON.stringify({
           username: localStorage['username'],
           msg: input
         }));
@@ -165,6 +211,8 @@
 
     ChatMenuView.prototype.tagName = 'li';
 
+    ChatMenuView.prototype.className = 'active';
+
     ChatMenuView.prototype.template = _.template($('#chat-menu').html());
 
     ChatMenuView.prototype.initialize = function() {
@@ -187,7 +235,7 @@
     ChatMenuView.prototype.toggle = function() {
       var offset;
       $(this.el).toggleClass('active');
-      offset = $(this.el).hasClass('active') ? '0' : '-210';
+      offset = $(this.el).hasClass('active') ? '0' : '-220';
       $('.chatapp').animate({
         right: offset
       });
@@ -198,43 +246,37 @@
 
   })(Backbone.View);
 
-  Chat = (function() {
+  Channel = (function() {
 
-    function Chat(title) {
+    function Channel(title) {
       this.title = title;
       this.removeUser = __bind(this.removeUser, this);
       this.addUser = __bind(this.addUser, this);
       this.addMessage = __bind(this.addMessage, this);
       this.messages = new Backbone.Collection;
       this.users = new Backbone.Collection;
-      this.usersView = new UsersView({
-        collection: this.users
-      });
-      this.chatmenuView = new ChatMenuView({
-        collection: this.users
-      });
       this.chatView = new ChatView({
         collection: this.messages
       });
     }
 
-    Chat.prototype.addMessage = function(msg) {
+    Channel.prototype.addMessage = function(msg) {
       return this.messages.add(msg);
     };
 
-    Chat.prototype.addUser = function(username) {
+    Channel.prototype.addUser = function(username) {
       return this.users.add(new User({
         username: username
       }));
     };
 
-    Chat.prototype.removeUser = function(username) {
+    Channel.prototype.removeUser = function(username) {
       return this.users.each(function(user) {
         if (user.get('username') === username) return user.destroy();
       });
     };
 
-    return Chat;
+    return Channel;
 
   })();
 
@@ -245,31 +287,50 @@
       this.socket = io.connect('/');
       this.socket.emit("join", localStorage["username"]);
       this.socket.on("join", function(username) {
-        return _this.chats['general'].addUser(username);
+        return _this.channels['general'].addUser(username);
       });
       this.socket.on("disconnect", function(username) {
-        return _this.chats['general'].removeUser(username);
+        return _this.channels['general'].removeUser(username);
       });
       this.socket.on("close", function() {
         return alert('Connection lost');
       });
       this.socket.on("message", function(data) {
-        return _this.chats['general'].addMessage(JSON.parse(data['msg']));
+        return _this.channels['general'].addMessage(JSON.parse(data['msg']));
       });
       this.socket.on("userlist", function(userlist) {
         var k, v, _results;
         _results = [];
         for (k in userlist) {
           v = userlist[k];
-          _results.push(_this.chats['general'].addUser(k));
+          _results.push(_this.channels['general'].addUser(k));
         }
         return _results;
       });
+      this.users = new Backbone.Collection(this.userdata);
+      this.usersView = new UsersView({
+        collection: this.users
+      });
+      this.chatmenuView = new ChatMenuView({
+        collection: this.users
+      });
     }
 
-    ChatApp.prototype.chats = {
-      general: new Chat('general')
+    ChatApp.prototype.channels = {
+      general: new Channel('general')
     };
+
+    ChatApp.prototype.userdata = [
+      {
+        name: 'Fabien Pinckaers'
+      }, {
+        name: 'Antony Lesuisse'
+      }, {
+        name: 'Minh Tran'
+      }, {
+        name: 'Frederic van der Essen'
+      }
+    ];
 
     return ChatApp;
 
@@ -284,7 +345,7 @@
       $('.user-box').text($('#change-name input').val());
       return localStorage['username'] = $('#change-name input').val();
     });
-    return window.chatapp = new ChatApp;
+    return window.app = new ChatApp;
   });
 
 }).call(this);

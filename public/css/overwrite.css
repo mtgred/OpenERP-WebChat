@@ -49,7 +49,7 @@
 body {
   padding-top: 36px;
   background: url("../img/wood.png");
-  color: #4c4c4c;
+  color: #666;
   text-shadow: 0 1px 1px rgba(255,255,255,0.5);
 }
 ul,
@@ -77,20 +77,40 @@ textarea {
   box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
 }
 .chatapp {
-  width: 210px;
+  width: 220px;
   position: fixed;
   top: 37px;
   bottom: 0;
-  right: -210px;
+  right: 0;
   background: #e8ebef;
   border-left: 1px solid #aeb9bd;
-  padding: 0 9px;
   vertical-align: top;
+}
+.chatapp .users li {
+  padding: 6px;
+  cursor: pointer;
+}
+.chatapp .users li:hover {
+  background: lightGrey;
+}
+.chatapp header {
+  background: #dedede;
+  background: -moz-linear-gradient(#fcfcfc, #dedede);
+  background: -webkit-gradient(linear, left top, left bottom, from(#fcfcfc), to(#dedede));
+  border-bottom: 1px solid #aeb9bd;
+  padding: 5px;
+}
+.chatapp header .searchbox {
+  width: 100%;
+  padding-left: 8px;
+  -moz-border-radius: 13px;
+  -webkit-border-radius: 13px;
+  border-radius: 13px;
 }
 .chat-windows {
   position: absolute;
   bottom: 6px;
-  right: 210px;
+  right: 220px;
 }
 .pane {
   margin-right: 6px;
@@ -110,8 +130,8 @@ textarea {
   height: 400px;
 }
 .chat-window .chatview .messages {
-  overflow: scroll;
-  height: 358px;
+  overflow: auto;
+  height: 335px;
 }
 .chat-window .chatview .messages ul {
   padding: 3px;

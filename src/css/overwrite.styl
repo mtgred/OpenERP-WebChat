@@ -72,7 +72,7 @@ background-color = #E8EBEF
 body
   padding-top: 36px
   background: url('../img/wood.png')
-  color: #4c4c4c
+  color: #666
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5)
 
 ul, ol
@@ -94,20 +94,34 @@ input, textarea
   box-shadow(inset 0 1px 4px rgba(0, 0, 0, 0.2))
 
 .chatapp
-  width: 210px
+  width: 220px
   position: fixed
   top: 37px
   bottom: 0
-  right: -210px
+  //right: -220px
+  right: 0
   background: background-color
   border-left: 1px solid border-color
-  padding: 0 9px
   vertical-align: top
+  .users
+    li
+      padding: 6px
+      cursor: pointer
+      &:hover
+        background: lightGrey
+  header
+    vertical-gradient(#fcfcfc, #dedede)
+    border-bottom: 1px solid border-color
+    padding: 5px
+    .searchbox
+      width: 100%
+      padding-left: 8px
+      radius 13px
 
 .chat-windows
   position: absolute
   bottom: 6px
-  right: 210px
+  right: 220px
 
 .pane
   margin-right: 6px
@@ -121,8 +135,8 @@ input, textarea
     position: relative
     height: 400px
     .messages
-      overflow: scroll
-      height: 358px
+      overflow: auto
+      height: 335px
       ul
         padding: 3px
     .msg

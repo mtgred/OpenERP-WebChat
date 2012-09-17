@@ -34,10 +34,11 @@ div.modal.hide#change-name
     button.btn(data-dismiss="modal") Cancel
   
 script(type="text/template", id="chat-user")
-  <%= username %>
+  <%= name %>
 
 script(type="text/template", id="user-list")
-  h4 Users
+  header
+    input.searchbox(placeholder="Search users...") 
   ul
 
 script(type="text/template", id="chat-menu")

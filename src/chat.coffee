@@ -3,18 +3,32 @@ class User extends Backbone.Model
 class UserView extends Backbone.View
   tagName: 'li'
   className: 'user'
-  initialize: ->
-    @model.bind 'remove', => $(@.el).remove()
   template: _.template $('#chat-user').html()
+  initialize: -> @model.bind 'remove', => $(@el).remove()
+  events: 'click': 'createChannel'
   render: -> $(@el).html(@template @model.toJSON())
+  createChannel: -> console.log @model.get('name')
 
 class UsersView extends Backbone.View
   className: 'users'
   template: _.template $('#user-list').html()
   initialize: ->
     @collection.bind('add', @addUser)
+    @collection.bind('reset', @render)
     $('.chatapp').append($(@el).html(@template({})))
+    @collection.each (user) => @addUser(user)
+  events: 'keyup .searchbox': 'filter'
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
+  render: =>
+    $(@el).find('> ul').empty()
+    @collection.each (user) => @addUser(user)
+  filter: =>
+    s = $('.searchbox').val().toLowerCase()
+    if s
+      $(@el).find('> ul').empty()
+      @addUser(u) for u in @collection.filter (u) -> ~u.get('name').toLowerCase().indexOf s
+    else
+      @render()
 
 class MessageView extends Backbone.View
   tagName: 'li'
@@ -27,7 +41,7 @@ class ChatView extends Backbone.View
   template: _.template $('#chat').html()
   initialize: ->
     @collection.bind('add', @addMessage)
-    $('.chat-window').append($(@el).html(@template(title: 'Foobar')))
+    $('.chat-window').append($(@el).html(@template(title: 'General')))
   events:
     'submit form': 'sendMessage'
     'click .close': 'close'
@@ -36,7 +50,7 @@ class ChatView extends Backbone.View
   sendMessage: (e) =>
     input = $(@el).find('.prompt').val()
     if input
-      chatapp.socket.send(JSON.stringify({username: localStorage['username'], msg: input}))
+      app.socket.send(JSON.stringify({username: localStorage['username'], msg: input}))
       @collection.add(username: localStorage['username'], msg: input)
     $(@el).find('.prompt').val('')
     return false
@@ -44,6 +58,7 @@ class ChatView extends Backbone.View
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
+  className: 'active'
   template: _.template $('#chat-menu').html()
   initialize: ->
     @collection.bind('add', @render)
@@ -54,32 +69,38 @@ class ChatMenuView extends Backbone.View
   render: => $(@el).html(@template(usercount: @collection.length))
   toggle: =>
     $(@el).toggleClass('active')
-    offset = if $(@el).hasClass('active') then '0' else '-210'
+    offset = if $(@el).hasClass('active') then '0' else '-220'
     $('.chatapp').animate(right: offset)
     return false
 
-class Chat
+class Channel
   constructor: (@title) ->
     @messages = new Backbone.Collection
     @users = new Backbone.Collection
-    @usersView = new UsersView(collection: @users)
-    @chatmenuView = new ChatMenuView(collection: @users)
     @chatView = new ChatView(collection: @messages)
   addMessage: (msg) => @messages.add(msg)
   addUser: (username) => @users.add(new User username: username)
-  removeUser: (username) =>
-    @users.each (user) -> user.destroy() if user.get('username') is username
+  removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
 
 class ChatApp
   constructor: ->
     @socket = io.connect('/')
     @socket.emit "join", localStorage["username"]
-    @socket.on "join", (username) => @chats['general'].addUser(username)
-    @socket.on "disconnect", (username) => @chats['general'].removeUser(username)
+    @socket.on "join", (username) => @channels['general'].addUser(username)
+    @socket.on "disconnect", (username) => @channels['general'].removeUser(username)
     @socket.on "close", -> alert('Connection lost')
-    @socket.on "message", (data) => @chats['general'].addMessage(JSON.parse(data['msg']))
-    @socket.on "userlist", (userlist) => @chats['general'].addUser(k) for k, v of userlist
-  chats: { general: new Chat('general') }
+    @socket.on "message", (data) => @channels['general'].addMessage(JSON.parse(data['msg']))
+    @socket.on "userlist", (userlist) => @channels['general'].addUser(k) for k, v of userlist
+    @users = new Backbone.Collection(@userdata)
+    @usersView = new UsersView(collection: @users)
+    @chatmenuView = new ChatMenuView(collection: @users)
+  channels: { general: new Channel('general') }
+  userdata: [
+    {name: 'Fabien Pinckaers'},
+    {name: 'Antony Lesuisse'},
+    {name: 'Minh Tran'},
+    {name: 'Frederic van der Essen'}
+  ]
 
 $ ->
   localStorage['username'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['username']
@@ -88,7 +109,7 @@ $ ->
     $('.user-box').text($('#change-name input').val())
     localStorage['username'] = $('#change-name input').val()
 
-  window.chatapp = new ChatApp
+  window.app = new ChatApp
 
 #Backbone.sync = (method, model, options) ->
   #app.socket.send(model.attributes) if method is 'create'
