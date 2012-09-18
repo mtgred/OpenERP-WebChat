@@ -102,10 +102,32 @@ textarea {
 }
 .chatapp header .searchbox {
   width: 100%;
-  padding-left: 8px;
+  padding: 1px 21px 1px 19px;
+  font-size: 13px;
   -moz-border-radius: 13px;
   -webkit-border-radius: 13px;
   border-radius: 13px;
+}
+.chatapp header .search-icon {
+  position: absolute;
+  color: #888;
+  top: 4px;
+  left: 9px;
+  font-size: 28px;
+  font-family: "entypoRegular" !important;
+  font-weight: 300 !important;
+}
+.chatapp header .searchclear {
+  display: none;
+  position: absolute;
+  right: 11px;
+  top: 5px;
+  font-size: 26px;
+  color: #b6b6b6;
+  cursor: pointer;
+}
+.chatapp header .searchclear:hover {
+  color: #888;
 }
 .chat-windows {
   position: absolute;

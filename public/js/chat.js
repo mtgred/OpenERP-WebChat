@@ -58,6 +58,7 @@
     __extends(UsersView, _super);
 
     function UsersView() {
+      this.searchclear = __bind(this.searchclear, this);
       this.filter = __bind(this.filter, this);
       this.render = __bind(this.render, this);
       this.addUser = __bind(this.addUser, this);
@@ -79,7 +80,8 @@
     };
 
     UsersView.prototype.events = {
-      'keyup .searchbox': 'filter'
+      'keyup .searchbox': 'filter',
+      'click .searchclear': 'searchclear'
     };
 
     UsersView.prototype.addUser = function(user) {
@@ -97,22 +99,27 @@
     };
 
     UsersView.prototype.filter = function() {
-      var s, u, _i, _len, _ref, _results;
+      var s, u, _i, _len, _ref;
       s = $('.searchbox').val().toLowerCase();
       if (s) {
         $(this.el).find('> ul').empty();
         _ref = this.collection.filter(function(u) {
           return ~u.get('name').toLowerCase().indexOf(s);
         });
-        _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           u = _ref[_i];
-          _results.push(this.addUser(u));
+          this.addUser(u);
         }
-        return _results;
+        return $('.searchclear').fadeIn('fast');
       } else {
-        return this.render();
+        return this.searchclear();
       }
+    };
+
+    UsersView.prototype.searchclear = function() {
+      $('.searchclear').fadeOut('fast');
+      $('.searchbox').val('').focus;
+      return this.render();
     };
 
     return UsersView;

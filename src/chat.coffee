@@ -17,7 +17,9 @@ class UsersView extends Backbone.View
     @collection.bind('reset', @render)
     $('.chatapp').append($(@el).html(@template({})))
     @collection.each (user) => @addUser(user)
-  events: 'keyup .searchbox': 'filter'
+  events:
+    'keyup .searchbox': 'filter'
+    'click .searchclear': 'searchclear'
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
   render: =>
     $(@el).find('> ul').empty()
@@ -27,8 +29,13 @@ class UsersView extends Backbone.View
     if s
       $(@el).find('> ul').empty()
       @addUser(u) for u in @collection.filter (u) -> ~u.get('name').toLowerCase().indexOf s
+      $('.searchclear').fadeIn('fast')
     else
-      @render()
+      @searchclear()
+  searchclear: =>
+    $('.searchclear').fadeOut('fast')
+    $('.searchbox').val('').focus
+    @render()
 
 class MessageView extends Backbone.View
   tagName: 'li'
