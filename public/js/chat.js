@@ -329,13 +329,17 @@
 
     ChatApp.prototype.userdata = [
       {
-        name: 'Fabien Pinckaers'
+        name: 'Fabien Pinckaers',
+        username: 'fp'
       }, {
-        name: 'Antony Lesuisse'
+        name: 'Antony Lesuisse',
+        username: 'al'
       }, {
-        name: 'Minh Tran'
+        name: 'Minh Tran',
+        username: 'mit'
       }, {
-        name: 'Frederic van der Essen'
+        name: 'Frederic van der Essen',
+        username: 'fva'
       }
     ];
 

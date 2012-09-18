@@ -103,10 +103,10 @@ class ChatApp
     @chatmenuView = new ChatMenuView(collection: @users)
   channels: { general: new Channel('general') }
   userdata: [
-    {name: 'Fabien Pinckaers'},
-    {name: 'Antony Lesuisse'},
-    {name: 'Minh Tran'},
-    {name: 'Frederic van der Essen'}
+    {name: 'Fabien Pinckaers', username: 'fp'},
+    {name: 'Antony Lesuisse', username: 'al'},
+    {name: 'Minh Tran', username: 'mit'},
+    {name: 'Frederic van der Essen', username: 'fva'}
   ]
 
 $ ->

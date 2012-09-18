@@ -93,6 +93,13 @@ input, textarea
   radius(3px)
   box-shadow(inset 0 1px 4px rgba(0, 0, 0, 0.2))
 
+.avatar
+  height: 28px
+  width: 28px
+  radius(3px)
+  box-shadow(0 1px 4px rgba(0,0,0,.4))
+  margin-right: 2px
+
 .chatapp
   width: 220px
   position: fixed
@@ -104,8 +111,9 @@ input, textarea
   border-left: 1px solid border-color
   vertical-align: top
   .users
+    overflow: auto
     li
-      padding: 6px
+      padding: 3px 6px
       cursor: pointer
       &:hover
         background: lightGrey
