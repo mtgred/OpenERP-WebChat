@@ -340,6 +340,12 @@
       }, {
         name: 'Frederic van der Essen',
         username: 'fva'
+      }, {
+        name: 'Julien Thewys',
+        username: 'jth'
+      }, {
+        name: 'Nicoleta Gherlea',
+        username: 'ngh'
       }
     ];
 
