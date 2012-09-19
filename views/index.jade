@@ -35,7 +35,8 @@ div.modal.hide#change-name
   
 script(type="text/template", id="chat-user")
   | <img src="/img/avatar/<%= username %>.jpeg" class="avatar" />
-  | <%= name %>
+  div.name <%= name %>
+  | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 
 script(type="text/template", id="user-list")
   header

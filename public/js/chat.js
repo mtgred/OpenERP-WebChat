@@ -32,8 +32,11 @@
 
     UserView.prototype.initialize = function() {
       var _this = this;
-      return this.model.bind('remove', function() {
+      this.model.bind('remove', function() {
         return $(_this.el).remove();
+      });
+      return this.model.bind('change', function() {
+        return _this.render();
       });
     };
 
@@ -225,6 +228,7 @@
     ChatMenuView.prototype.initialize = function() {
       this.collection.bind('add', this.render);
       this.collection.bind('remove', this.render);
+      this.collection.bind('change', this.render);
       $('.nav.pull-right').prepend(this.el);
       return this.render();
     };
@@ -235,7 +239,9 @@
 
     ChatMenuView.prototype.render = function() {
       return $(this.el).html(this.template({
-        usercount: this.collection.length
+        usercount: (this.collection.filter(function(user) {
+          return user.get('online');
+        })).length
       }));
     };
 
@@ -330,22 +336,28 @@
     ChatApp.prototype.userdata = [
       {
         name: 'Fabien Pinckaers',
-        username: 'fp'
+        username: 'fp',
+        online: true
       }, {
         name: 'Antony Lesuisse',
-        username: 'al'
+        username: 'al',
+        online: false
       }, {
         name: 'Minh Tran',
-        username: 'mit'
+        username: 'mit',
+        online: true
       }, {
         name: 'Frederic van der Essen',
-        username: 'fva'
+        username: 'fva',
+        online: true
       }, {
         name: 'Julien Thewys',
-        username: 'jth'
+        username: 'jth',
+        online: false
       }, {
         name: 'Nicoleta Gherlea',
-        username: 'ngh'
+        username: 'ngh',
+        online: false
       }
     ];
 

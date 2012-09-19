@@ -4,7 +4,9 @@ class UserView extends Backbone.View
   tagName: 'li'
   className: 'user'
   template: _.template $('#chat-user').html()
-  initialize: -> @model.bind 'remove', => $(@el).remove()
+  initialize: ->
+    @model.bind 'remove', => $(@el).remove()
+    @model.bind 'change', => @render()
   events: 'click': 'createChannel'
   render: -> $(@el).html(@template @model.toJSON())
   createChannel: -> console.log @model.get('name')
@@ -70,10 +72,11 @@ class ChatMenuView extends Backbone.View
   initialize: ->
     @collection.bind('add', @render)
     @collection.bind('remove', @render)
+    @collection.bind('change', @render)
     $('.nav.pull-right').prepend(@el)
     @render()
   events: 'click': 'toggle'
-  render: => $(@el).html(@template(usercount: @collection.length))
+  render: => $(@el).html @template(usercount: (@collection.filter (user) -> user.get('online')).length)
   toggle: =>
     $(@el).toggleClass('active')
     offset = if $(@el).hasClass('active') then '0' else '-220'
@@ -103,12 +106,12 @@ class ChatApp
     @chatmenuView = new ChatMenuView(collection: @users)
   channels: { general: new Channel('general') }
   userdata: [
-    {name: 'Fabien Pinckaers', username: 'fp'},
-    {name: 'Antony Lesuisse', username: 'al'},
-    {name: 'Minh Tran', username: 'mit'},
-    {name: 'Frederic van der Essen', username: 'fva'}
-    {name: 'Julien Thewys', username: 'jth'}
-    {name: 'Nicoleta Gherlea', username: 'ngh'}
+    {name: 'Fabien Pinckaers', username: 'fp', online: true },
+    {name: 'Antony Lesuisse', username: 'al', online: false },
+    {name: 'Minh Tran', username: 'mit', online: true },
+    {name: 'Frederic van der Essen', username: 'fva', online: true }
+    {name: 'Julien Thewys', username: 'jth', online: false }
+    {name: 'Nicoleta Gherlea', username: 'ngh', online: false }
   ]
 
 $ ->

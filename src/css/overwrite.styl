@@ -19,6 +19,11 @@ opacity(opacity)
   -moz-opacity: opacity
   opacity: opacity
 
+ellipsis()
+  text-overflow: ellipsis
+  white-space: nowrap
+  overflow: hidden
+
 @font-face
   font-family: 'EntypoRegular'
   src: url('../font/entypo-webfont.eot') format('eot')
@@ -98,7 +103,7 @@ input, textarea
   width: 28px
   radius(3px)
   box-shadow(0 1px 3px rgba(0,0,0,.4))
-  margin-right: 2px
+  margin-right: 6px
 
 .chatapp
   width: 220px
@@ -118,6 +123,10 @@ input, textarea
       font-size: 13px
       &:hover
         background: lightGrey
+      .name
+        display: inline-block
+        width: 156px
+        ellipsis()
   header
     vertical-gradient(#fcfcfc, #dedede)
     border-bottom: 1px solid border-color
@@ -145,6 +154,11 @@ input, textarea
       cursor: pointer
       &:hover
         color: #888
+  .online-status
+    width: 12px
+    height: 12px
+    float: right
+    margin-top: 7px
 
 .chat-windows
   position: absolute
