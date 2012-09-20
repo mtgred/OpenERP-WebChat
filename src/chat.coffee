@@ -20,7 +20,7 @@ class UsersView extends Backbone.View
     $('.chatapp').append($(@el).html(@template({})))
     @collection.each (user) => @addUser(user)
   events:
-    'keyup .searchbox': 'filter'
+    'keydown .searchbox': 'filter'
     'click .searchclear': 'searchclear'
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
   render: =>
@@ -36,7 +36,7 @@ class UsersView extends Backbone.View
       @searchclear()
   searchclear: =>
     $('.searchclear').fadeOut('fast')
-    $('.searchbox').val('').focus
+    $('.searchbox').val('').focus()
     @render()
 
 class MessageView extends Backbone.View
@@ -94,22 +94,30 @@ class Channel
 
 class ChatApp
   constructor: ->
-    @socket = io.connect('/')
-    @socket.emit "join", localStorage["username"]
-    @socket.on "join", (username) => @channels['general'].addUser(username)
-    @socket.on "disconnect", (username) => @channels['general'].removeUser(username)
-    @socket.on "close", -> alert('Connection lost')
-    @socket.on "message", (data) => @channels['general'].addMessage(JSON.parse(data['msg']))
-    @socket.on "userlist", (userlist) => @channels['general'].addUser(k) for k, v of userlist
     @users = new Backbone.Collection(@userdata)
     @usersView = new UsersView(collection: @users)
     @chatmenuView = new ChatMenuView(collection: @users)
+
+    @socket = io.connect('/')
+    @socket.emit "join", localStorage["username"]
+    @socket.on "join", (name) =>
+      @connection(name)
+      @channels['general'].addUser(name)
+    @socket.on "disconnect", (name) =>
+      @users.each (u) -> u.set('online', false) if u.get('name') is name
+      @channels['general'].removeUser(name)
+    @socket.on "close", -> alert('Connection lost')
+    @socket.on "message", (data) => @channels['general'].addMessage(JSON.parse(data['msg']))
+    @socket.on "userlist", (userlist) =>
+      @connection(k) for k, v of userlist
+      @channels['general'].addUser(k) for k, v of userlist
+  connection: (name) -> @users.each (u) -> u.set('online', true) if u.get('name') is name
   channels: { general: new Channel('general') }
   userdata: [
-    {name: 'Fabien Pinckaers', username: 'fp', online: true },
+    {name: 'Fabien Pinckaers', username: 'fp', online: false },
     {name: 'Antony Lesuisse', username: 'al', online: false },
-    {name: 'Minh Tran', username: 'mit', online: true },
-    {name: 'Frederic van der Essen', username: 'fva', online: true }
+    {name: 'Minh Tran', username: 'mit', online: false },
+    {name: 'Frederic van der Essen', username: 'fva', online: false }
     {name: 'Julien Thewys', username: 'jth', online: false }
     {name: 'Nicoleta Gherlea', username: 'ngh', online: false }
   ]
@@ -122,6 +130,3 @@ $ ->
     localStorage['username'] = $('#change-name input').val()
 
   window.app = new ChatApp
-
-#Backbone.sync = (method, model, options) ->
-  #app.socket.send(model.attributes) if method is 'create'

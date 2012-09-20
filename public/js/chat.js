@@ -83,7 +83,7 @@
     };
 
     UsersView.prototype.events = {
-      'keyup .searchbox': 'filter',
+      'keydown .searchbox': 'filter',
       'click .searchclear': 'searchclear'
     };
 
@@ -121,7 +121,7 @@
 
     UsersView.prototype.searchclear = function() {
       $('.searchclear').fadeOut('fast');
-      $('.searchbox').val('').focus;
+      $('.searchbox').val('').focus();
       return this.render();
     };
 
@@ -297,13 +297,24 @@
 
     function ChatApp() {
       var _this = this;
+      this.users = new Backbone.Collection(this.userdata);
+      this.usersView = new UsersView({
+        collection: this.users
+      });
+      this.chatmenuView = new ChatMenuView({
+        collection: this.users
+      });
       this.socket = io.connect('/');
       this.socket.emit("join", localStorage["username"]);
-      this.socket.on("join", function(username) {
-        return _this.channels['general'].addUser(username);
+      this.socket.on("join", function(name) {
+        _this.connection(name);
+        return _this.channels['general'].addUser(name);
       });
-      this.socket.on("disconnect", function(username) {
-        return _this.channels['general'].removeUser(username);
+      this.socket.on("disconnect", function(name) {
+        _this.users.each(function(u) {
+          if (u.get('name') === name) return u.set('online', false);
+        });
+        return _this.channels['general'].removeUser(name);
       });
       this.socket.on("close", function() {
         return alert('Connection lost');
@@ -313,6 +324,10 @@
       });
       this.socket.on("userlist", function(userlist) {
         var k, v, _results;
+        for (k in userlist) {
+          v = userlist[k];
+          _this.connection(k);
+        }
         _results = [];
         for (k in userlist) {
           v = userlist[k];
@@ -320,14 +335,13 @@
         }
         return _results;
       });
-      this.users = new Backbone.Collection(this.userdata);
-      this.usersView = new UsersView({
-        collection: this.users
-      });
-      this.chatmenuView = new ChatMenuView({
-        collection: this.users
-      });
     }
+
+    ChatApp.prototype.connection = function(name) {
+      return this.users.each(function(u) {
+        if (u.get('name') === name) return u.set('online', true);
+      });
+    };
 
     ChatApp.prototype.channels = {
       general: new Channel('general')
@@ -337,7 +351,7 @@
       {
         name: 'Fabien Pinckaers',
         username: 'fp',
-        online: true
+        online: false
       }, {
         name: 'Antony Lesuisse',
         username: 'al',
@@ -345,11 +359,11 @@
       }, {
         name: 'Minh Tran',
         username: 'mit',
-        online: true
+        online: false
       }, {
         name: 'Frederic van der Essen',
         username: 'fva',
-        online: true
+        online: false
       }, {
         name: 'Julien Thewys',
         username: 'jth',
