@@ -49,7 +49,7 @@
     };
 
     UserView.prototype.createChannel = function() {
-      return console.log(this.model.get('name'));
+      return new Channel(this.model.get('name'));
     };
 
     return UserView;
@@ -83,7 +83,7 @@
     };
 
     UsersView.prototype.events = {
-      'keydown .searchbox': 'filter',
+      'keyup .searchbox': 'filter',
       'click .searchclear': 'searchclear'
     };
 
@@ -162,13 +162,15 @@
       ChatView.__super__.constructor.apply(this, arguments);
     }
 
-    ChatView.prototype.className = 'chatview';
+    ChatView.prototype.tagName = 'li';
+
+    ChatView.prototype.className = 'pane chat-window';
 
     ChatView.prototype.template = _.template($('#chat').html());
 
     ChatView.prototype.initialize = function() {
       this.collection.bind('add', this.addMessage);
-      return $('.chat-window').append($(this.el).html(this.template({
+      return $('.chat-windows').append($(this.el).html(this.template({
         title: 'General'
       })));
     };
@@ -239,8 +241,8 @@
 
     ChatMenuView.prototype.render = function() {
       return $(this.el).html(this.template({
-        usercount: (this.collection.filter(function(user) {
-          return user.get('online');
+        usercount: (this.collection.filter(function(u) {
+          return u.get('online');
         })).length
       }));
     };
@@ -248,9 +250,12 @@
     ChatMenuView.prototype.toggle = function() {
       var offset;
       $(this.el).toggleClass('active');
-      offset = $(this.el).hasClass('active') ? '0' : '-220';
+      offset = $(this.el).hasClass('active') ? 0 : -220;
       $('.chatapp').animate({
         right: offset
+      });
+      $('.chat-windows').animate({
+        right: offset + 220
       });
       return false;
     };
@@ -261,15 +266,14 @@
 
   Channel = (function() {
 
-    function Channel(title) {
-      this.title = title;
+    function Channel(user) {
       this.removeUser = __bind(this.removeUser, this);
       this.addUser = __bind(this.addUser, this);
-      this.addMessage = __bind(this.addMessage, this);
-      this.messages = new Backbone.Collection;
-      this.users = new Backbone.Collection;
+      this.addMessage = __bind(this.addMessage, this);      this.messages = new Backbone.Collection;
+      this.users = new Backbone.Collection([localStorage['name'], user]);
       this.chatView = new ChatView({
-        collection: this.messages
+        collection: this.messages,
+        users: this.users
       });
     }
 

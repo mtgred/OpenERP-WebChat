@@ -120,6 +120,7 @@ textarea {
   background: -moz-linear-gradient(#fcfcfc, #dedede);
   background: -webkit-gradient(linear, left top, left bottom, from(#fcfcfc), to(#dedede));
   border-bottom: 1px solid #aeb9bd;
+  margin-bottom: 2px;
   padding: 5px;
 }
 .chatapp header .searchbox {
@@ -174,6 +175,7 @@ textarea {
 }
 .chat-window {
   width: 280px;
+  float: right;
 }
 .chat-window .chatview {
   position: relative;

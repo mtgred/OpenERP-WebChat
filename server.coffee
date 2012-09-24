@@ -20,10 +20,23 @@ app.configure 'production', ->
   app.use express.errorHandler()
 
 # Routes
-app.get '/*', (req, res) -> res.render 'index.jade', title: 'OpenERP'
+userdata: [
+  {name: 'Fabien Pinckaers', username: 'fp'},
+  {name: 'Antony Lesuisse', username: 'al'},
+  {name: 'Minh Tran', username: 'mit'},
+  {name: 'Frederic van der Essen', username: 'fva'}
+  {name: 'Julien Thewys', username: 'jth'}
+  {name: 'Nicoleta Gherlea', username: 'ngh'}
+]
+app.get '/users', (req, res) -> res.json(userdata)
+app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP')
 
 # Socket.io
 connected = {}
+channels = []
+users = { name: u.name, username: u.username, online: false, channels: [] } for u in userdata
+
+#users
 io.sockets.on 'connection', (socket) ->
   socket.on 'join', (username) ->
     socket.broadcast.emit 'join', username

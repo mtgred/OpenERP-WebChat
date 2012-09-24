@@ -20,8 +20,7 @@ div.navbar.navbar-fixed-top
 
 div.content
   div.chatapp
-    div.chat-windows
-      div.pane.chat-window
+  ul.chat-windows
 
 div.modal.hide#change-name
   div.modal-header
@@ -53,12 +52,13 @@ script(type="text/template", id="chat-message")
   <%= username %>: <%= msg %>
 
 script(type="text/template", id="chat")
-  header
-    <%= title %>
-    button.close ×
-  div.messages
-    ul
-  footer
-    form
-      input.prompt(placeholder="Say something...")
+  div.chatview
+    header
+      <%= title %>
+      button.close ×
+    div.messages
+      ul
+    footer
+      form
+        input.prompt(placeholder="Say something...")
 

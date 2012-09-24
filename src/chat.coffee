@@ -9,7 +9,7 @@ class UserView extends Backbone.View
     @model.bind 'change', => @render()
   events: 'click': 'createChannel'
   render: -> $(@el).html(@template @model.toJSON())
-  createChannel: -> console.log @model.get('name')
+  createChannel: -> new Channel(@model.get('name'))
 
 class UsersView extends Backbone.View
   className: 'users'
@@ -20,7 +20,7 @@ class UsersView extends Backbone.View
     $('.chatapp').append($(@el).html(@template({})))
     @collection.each (user) => @addUser(user)
   events:
-    'keydown .searchbox': 'filter'
+    'keyup .searchbox': 'filter'
     'click .searchclear': 'searchclear'
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
   render: =>
@@ -46,11 +46,12 @@ class MessageView extends Backbone.View
   render: -> $(@el).html(@template @model.toJSON())
 
 class ChatView extends Backbone.View
-  className: 'chatview'
+  tagName: 'li'
+  className: 'pane chat-window'
   template: _.template $('#chat').html()
   initialize: ->
     @collection.bind('add', @addMessage)
-    $('.chat-window').append($(@el).html(@template(title: 'General')))
+    $('.chat-windows').append($(@el).html(@template(title: 'General')))
   events:
     'submit form': 'sendMessage'
     'click .close': 'close'
@@ -76,18 +77,20 @@ class ChatMenuView extends Backbone.View
     $('.nav.pull-right').prepend(@el)
     @render()
   events: 'click': 'toggle'
-  render: => $(@el).html @template(usercount: (@collection.filter (user) -> user.get('online')).length)
+  render: => $(@el).html @template(usercount: (@collection.filter (u) -> u.get('online')).length)
   toggle: =>
     $(@el).toggleClass('active')
-    offset = if $(@el).hasClass('active') then '0' else '-220'
+    offset = if $(@el).hasClass('active') then 0 else -220
     $('.chatapp').animate(right: offset)
+    $('.chat-windows').animate(right: offset + 220)
     return false
 
 class Channel
-  constructor: (@title) ->
+  constructor: (user) ->
     @messages = new Backbone.Collection
-    @users = new Backbone.Collection
-    @chatView = new ChatView(collection: @messages)
+    @users = new Backbone.Collection(
+      [localStorage['name'], user])
+    @chatView = new ChatView(collection: @messages, users: @users)
   addMessage: (msg) => @messages.add(msg)
   addUser: (username) => @users.add(new User username: username)
   removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
