@@ -73,13 +73,10 @@
     UsersView.prototype.template = _.template($('#user-list').html());
 
     UsersView.prototype.initialize = function() {
-      var _this = this;
       this.collection.bind('add', this.addUser);
       this.collection.bind('reset', this.render);
       $('.chatapp').append($(this.el).html(this.template({})));
-      return this.collection.each(function(user) {
-        return _this.addUser(user);
-      });
+      return this.render();
     };
 
     UsersView.prototype.events = {
@@ -97,7 +94,7 @@
       var _this = this;
       $(this.el).find('> ul').empty();
       return this.collection.each(function(user) {
-        return _this.addUser(user);
+        if (user.get('name') !== localStorage['name']) return _this.addUser(user);
       });
     };
 
@@ -191,11 +188,11 @@
       input = $(this.el).find('.prompt').val();
       if (input) {
         app.socket.send(JSON.stringify({
-          username: localStorage['username'],
+          username: localStorage['name'],
           msg: input
         }));
         this.collection.add({
-          username: localStorage['username'],
+          username: localStorage['name'],
           msg: input
         });
       }
@@ -228,9 +225,7 @@
     ChatMenuView.prototype.template = _.template($('#chat-menu').html());
 
     ChatMenuView.prototype.initialize = function() {
-      this.collection.bind('add', this.render);
-      this.collection.bind('remove', this.render);
-      this.collection.bind('change', this.render);
+      this.collection.bind('all', this.render);
       $('.nav.pull-right').prepend(this.el);
       return this.render();
     };
@@ -301,7 +296,9 @@
 
     function ChatApp() {
       var _this = this;
-      this.users = new Backbone.Collection(this.userdata);
+      this.users = new Backbone.Collection;
+      this.users.url = '/users';
+      this.users.fetch();
       this.usersView = new UsersView({
         collection: this.users
       });
@@ -309,16 +306,16 @@
         collection: this.users
       });
       this.socket = io.connect('/');
-      this.socket.emit("join", localStorage["username"]);
-      this.socket.on("join", function(name) {
-        _this.connection(name);
-        return _this.channels['general'].addUser(name);
+      this.socket.emit("connect", localStorage['name']);
+      this.socket.on("connect", function(name) {
+        return _this.users.each(function(u) {
+          if (u.get('name') === name) return u.set('online', true);
+        });
       });
       this.socket.on("disconnect", function(name) {
-        _this.users.each(function(u) {
+        return _this.users.each(function(u) {
           if (u.get('name') === name) return u.set('online', false);
         });
-        return _this.channels['general'].removeUser(name);
       });
       this.socket.on("close", function() {
         return alert('Connection lost');
@@ -326,71 +323,24 @@
       this.socket.on("message", function(data) {
         return _this.channels['general'].addMessage(JSON.parse(data['msg']));
       });
-      this.socket.on("userlist", function(userlist) {
-        var k, v, _results;
-        for (k in userlist) {
-          v = userlist[k];
-          _this.connection(k);
-        }
-        _results = [];
-        for (k in userlist) {
-          v = userlist[k];
-          _results.push(_this.channels['general'].addUser(k));
-        }
-        return _results;
-      });
     }
-
-    ChatApp.prototype.connection = function(name) {
-      return this.users.each(function(u) {
-        if (u.get('name') === name) return u.set('online', true);
-      });
-    };
 
     ChatApp.prototype.channels = {
       general: new Channel('general')
     };
-
-    ChatApp.prototype.userdata = [
-      {
-        name: 'Fabien Pinckaers',
-        username: 'fp',
-        online: false
-      }, {
-        name: 'Antony Lesuisse',
-        username: 'al',
-        online: false
-      }, {
-        name: 'Minh Tran',
-        username: 'mit',
-        online: false
-      }, {
-        name: 'Frederic van der Essen',
-        username: 'fva',
-        online: false
-      }, {
-        name: 'Julien Thewys',
-        username: 'jth',
-        online: false
-      }, {
-        name: 'Nicoleta Gherlea',
-        username: 'ngh',
-        online: false
-      }
-    ];
 
     return ChatApp;
 
   })();
 
   $(function() {
-    if (!localStorage['username']) {
-      localStorage['username'] = 'Guest ' + Math.floor(Math.random() * 1000);
+    if (!localStorage['name']) {
+      localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000);
     }
-    $('.user-box').text(localStorage['username']);
+    $('.user-box').text(localStorage['name']);
     $('#change-name .save').click(function() {
       $('.user-box').text($('#change-name input').val());
-      return localStorage['username'] = $('#change-name input').val();
+      return localStorage['name'] = $('#change-name input').val();
     });
     return window.app = new ChatApp;
   });

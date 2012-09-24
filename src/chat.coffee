@@ -18,14 +18,14 @@ class UsersView extends Backbone.View
     @collection.bind('add', @addUser)
     @collection.bind('reset', @render)
     $('.chatapp').append($(@el).html(@template({})))
-    @collection.each (user) => @addUser(user)
+    @render()
   events:
     'keyup .searchbox': 'filter'
     'click .searchclear': 'searchclear'
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
   render: =>
     $(@el).find('> ul').empty()
-    @collection.each (user) => @addUser(user)
+    @collection.each (user) => @addUser(user) if user.get('name') isnt localStorage['name']
   filter: =>
     s = $('.searchbox').val().toLowerCase()
     if s
@@ -60,8 +60,8 @@ class ChatView extends Backbone.View
   sendMessage: (e) =>
     input = $(@el).find('.prompt').val()
     if input
-      app.socket.send(JSON.stringify({username: localStorage['username'], msg: input}))
-      @collection.add(username: localStorage['username'], msg: input)
+      app.socket.send(JSON.stringify({username: localStorage['name'], msg: input}))
+      @collection.add(username: localStorage['name'], msg: input)
     $(@el).find('.prompt').val('')
     return false
   close: => $(@el).hide()
@@ -71,9 +71,7 @@ class ChatMenuView extends Backbone.View
   className: 'active'
   template: _.template $('#chat-menu').html()
   initialize: ->
-    @collection.bind('add', @render)
-    @collection.bind('remove', @render)
-    @collection.bind('change', @render)
+    @collection.bind('all', @render)
     $('.nav.pull-right').prepend(@el)
     @render()
   events: 'click': 'toggle'
@@ -88,8 +86,7 @@ class ChatMenuView extends Backbone.View
 class Channel
   constructor: (user) ->
     @messages = new Backbone.Collection
-    @users = new Backbone.Collection(
-      [localStorage['name'], user])
+    @users = new Backbone.Collection([localStorage['name'], user])
     @chatView = new ChatView(collection: @messages, users: @users)
   addMessage: (msg) => @messages.add(msg)
   addUser: (username) => @users.add(new User username: username)
@@ -97,39 +94,25 @@ class Channel
 
 class ChatApp
   constructor: ->
-    @users = new Backbone.Collection(@userdata)
+    @users = new Backbone.Collection
+    @users.url = '/users'
+    @users.fetch()
     @usersView = new UsersView(collection: @users)
     @chatmenuView = new ChatMenuView(collection: @users)
 
     @socket = io.connect('/')
-    @socket.emit "join", localStorage["username"]
-    @socket.on "join", (name) =>
-      @connection(name)
-      @channels['general'].addUser(name)
-    @socket.on "disconnect", (name) =>
-      @users.each (u) -> u.set('online', false) if u.get('name') is name
-      @channels['general'].removeUser(name)
+    @socket.emit "connect", localStorage['name']
+    @socket.on "connect", (name) => @users.each (u) -> u.set('online', true) if u.get('name') is name
+    @socket.on "disconnect", (name) => @users.each (u) -> u.set('online', false) if u.get('name') is name
     @socket.on "close", -> alert('Connection lost')
     @socket.on "message", (data) => @channels['general'].addMessage(JSON.parse(data['msg']))
-    @socket.on "userlist", (userlist) =>
-      @connection(k) for k, v of userlist
-      @channels['general'].addUser(k) for k, v of userlist
-  connection: (name) -> @users.each (u) -> u.set('online', true) if u.get('name') is name
   channels: { general: new Channel('general') }
-  userdata: [
-    {name: 'Fabien Pinckaers', username: 'fp', online: false },
-    {name: 'Antony Lesuisse', username: 'al', online: false },
-    {name: 'Minh Tran', username: 'mit', online: false },
-    {name: 'Frederic van der Essen', username: 'fva', online: false }
-    {name: 'Julien Thewys', username: 'jth', online: false }
-    {name: 'Nicoleta Gherlea', username: 'ngh', online: false }
-  ]
 
 $ ->
-  localStorage['username'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['username']
-  $('.user-box').text(localStorage['username'])
+  localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
+  $('.user-box').text(localStorage['name'])
   $('#change-name .save').click ->
     $('.user-box').text($('#change-name input').val())
-    localStorage['username'] = $('#change-name input').val()
+    localStorage['name'] = $('#change-name input').val()
 
   window.app = new ChatApp

@@ -3,7 +3,6 @@ stylus = require('stylus')
 app = express.createServer()
 io = require('socket.io').listen(app)
 
-# Express config
 app.configure ->
   app.use express.bodyParser()
   app.use express.methodOverride()
@@ -12,45 +11,30 @@ app.configure ->
   app.use stylus.middleware({src: __dirname + '/src', dest: __dirname + '/public'})
   app.use express.static(__dirname + '/public')
   app.use app.router
+app.configure 'development', -> app.use express.errorHandler({dumpExceptions: true, showStack: true})
+app.configure 'production', -> app.use express.errorHandler()
 
-app.configure 'development', ->
-  app.use express.errorHandler({dumpExceptions: true, showStack: true})
-
-app.configure 'production', ->
-  app.use express.errorHandler()
-
-# Routes
-userdata: [
-  {name: 'Fabien Pinckaers', username: 'fp'},
-  {name: 'Antony Lesuisse', username: 'al'},
-  {name: 'Minh Tran', username: 'mit'},
-  {name: 'Frederic van der Essen', username: 'fva'}
-  {name: 'Julien Thewys', username: 'jth'}
-  {name: 'Nicoleta Gherlea', username: 'ngh'}
+users = [
+  {name: 'Fabien Pinckaers', username: 'fp', online: false, channels: []}
+  {name: 'Antony Lesuisse', username: 'al', online: false, channels: []}
+  {name: 'Minh Tran', username: 'mit', online: false, channels: []}
+  {name: 'Frederic van der Essen', username: 'fva', online: false, channels: []}
+  {name: 'Julien Thewys', username: 'jth', online: false, channels: []}
+  {name: 'Nicoleta Gherlea', username: 'ngh', online: false, channels: []}
 ]
-app.get '/users', (req, res) -> res.json(userdata)
+
+app.get '/users', (req, res) -> res.json(users)
 app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP')
 
-# Socket.io
-connected = {}
-channels = []
-users = { name: u.name, username: u.username, online: false, channels: [] } for u in userdata
-
-#users
 io.sockets.on 'connection', (socket) ->
-  socket.on 'join', (username) ->
-    socket.broadcast.emit 'join', username
-    socket.emit('userlist', connected)
-    socket.username = username
-    connected[username] = ''
-
+  socket.on 'connect', (name) ->
+    socket.name = name
+    socket.broadcast.emit('connect', name)
+    u.online = true for u in users when u.name is name
   socket.on 'disconnect', ->
-    socket.broadcast.emit 'disconnect', socket.username
-    delete connected[socket.username]
+    socket.broadcast.emit('disconnect', socket.name)
+    u.online = false for u in users when u.name is socket.name
+  socket.on 'message', (data) -> socket.broadcast.emit('message', {name: socket.name, msg: data})
 
-  socket.on 'message', (data) ->
-    socket.broadcast.emit 'message', {username: socket.username, msg: data}
-
-# Main
 app.listen(3000)
 console.log('http://localhost:3000/')
