@@ -41,15 +41,13 @@
     };
 
     UserView.prototype.events = {
-      'click': 'createChannel'
+      'click': function() {
+        return window.app.createChannel(this.model.get('name'));
+      }
     };
 
     UserView.prototype.render = function() {
       return $(this.el).html(this.template(this.model.toJSON()));
-    };
-
-    UserView.prototype.createChannel = function() {
-      return new Channel(this.model.get('name'));
     };
 
     return UserView;
@@ -153,7 +151,7 @@
     __extends(ChatView, _super);
 
     function ChatView() {
-      this.close = __bind(this.close, this);
+      this.show = __bind(this.show, this);
       this.sendMessage = __bind(this.sendMessage, this);
       this.addMessage = __bind(this.addMessage, this);
       ChatView.__super__.constructor.apply(this, arguments);
@@ -167,32 +165,37 @@
 
     ChatView.prototype.initialize = function() {
       this.collection.bind('add', this.addMessage);
-      return $('.chat-windows').append($(this.el).html(this.template({
-        title: 'General'
+      $('.chat-windows').append($(this.el).html(this.template({
+        title: this.options.dest
       })));
+      return $('.prompt').focus();
     };
 
     ChatView.prototype.events = {
       'submit form': 'sendMessage',
-      'click .close': 'close'
+      'click .close': function() {
+        return $(this.el).hide();
+      }
     };
 
     ChatView.prototype.addMessage = function(msg) {
-      return $(this.el).find('.messages > ul').append((new MessageView({
+      $(this.el).find('.messages > ul').append((new MessageView({
         model: msg
       })).render()).parent().scrollTop(99999);
+      return this.show();
     };
 
     ChatView.prototype.sendMessage = function(e) {
       var input;
       input = $(this.el).find('.prompt').val();
       if (input) {
-        app.socket.send(JSON.stringify({
-          username: localStorage['name'],
+        app.socket.emit('pm', JSON.stringify({
+          from: localStorage['name'],
+          to: this.options.dest,
           msg: input
         }));
         this.collection.add({
-          username: localStorage['name'],
+          from: localStorage['name'],
           msg: input
         });
       }
@@ -200,8 +203,8 @@
       return false;
     };
 
-    ChatView.prototype.close = function() {
-      return $(this.el).hide();
+    ChatView.prototype.show = function() {
+      return $(this.el).show();
     };
 
     return ChatView;
@@ -261,14 +264,15 @@
 
   Channel = (function() {
 
-    function Channel(user) {
+    function Channel(dest) {
+      this.dest = dest;
       this.removeUser = __bind(this.removeUser, this);
       this.addUser = __bind(this.addUser, this);
-      this.addMessage = __bind(this.addMessage, this);      this.messages = new Backbone.Collection;
-      this.users = new Backbone.Collection([localStorage['name'], user]);
+      this.addMessage = __bind(this.addMessage, this);
+      this.messages = new Backbone.Collection;
       this.chatView = new ChatView({
         collection: this.messages,
-        users: this.users
+        dest: this.dest
       });
     }
 
@@ -295,6 +299,7 @@
   ChatApp = (function() {
 
     function ChatApp() {
+      this.createChannel = __bind(this.createChannel, this);
       var _this = this;
       this.users = new Backbone.Collection;
       this.users.url = '/users';
@@ -317,16 +322,20 @@
           if (u.get('name') === name) return u.set('online', false);
         });
       });
-      this.socket.on("close", function() {
-        return alert('Connection lost');
-      });
-      this.socket.on("message", function(data) {
-        return _this.channels['general'].addMessage(JSON.parse(data['msg']));
+      this.socket.on("pm", function(data) {
+        if (_this.channels[data.from] == null) _this.createChannel(data.from);
+        return _this.channels[data.from].addMessage(data);
       });
     }
 
-    ChatApp.prototype.channels = {
-      general: new Channel('general')
+    ChatApp.prototype.channels = {};
+
+    ChatApp.prototype.createChannel = function(dest) {
+      if (this.channels[dest] != null) {
+        return this.channels[dest].chatView.show();
+      } else {
+        return this.channels[dest] = new Channel(dest);
+      }
     };
 
     return ChatApp;

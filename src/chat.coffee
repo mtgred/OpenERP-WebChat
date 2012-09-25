@@ -7,9 +7,8 @@ class UserView extends Backbone.View
   initialize: ->
     @model.bind 'remove', => $(@el).remove()
     @model.bind 'change', => @render()
-  events: 'click': 'createChannel'
+  events: 'click': -> window.app.createChannel(@model.get('name'))
   render: -> $(@el).html(@template @model.toJSON())
-  createChannel: -> new Channel(@model.get('name'))
 
 class UsersView extends Backbone.View
   className: 'users'
@@ -49,22 +48,24 @@ class ChatView extends Backbone.View
   tagName: 'li'
   className: 'pane chat-window'
   template: _.template $('#chat').html()
-  initialize: ->
+  initialize:  ->
     @collection.bind('add', @addMessage)
-    $('.chat-windows').append($(@el).html(@template(title: 'General')))
+    $('.chat-windows').append($(@el).html(@template(title: @options.dest)))
+    $('.prompt').focus()
   events:
     'submit form': 'sendMessage'
-    'click .close': 'close'
+    'click .close': -> $(@el).hide()
   addMessage: (msg) =>
     $(@el).find('.messages > ul').append((new MessageView model: msg).render()).parent().scrollTop(99999)
+    @show()
   sendMessage: (e) =>
     input = $(@el).find('.prompt').val()
     if input
-      app.socket.send(JSON.stringify({username: localStorage['name'], msg: input}))
-      @collection.add(username: localStorage['name'], msg: input)
+      app.socket.emit('pm', JSON.stringify({from: localStorage['name'], to: @options.dest, msg: input}))
+      @collection.add(from: localStorage['name'], msg: input)
     $(@el).find('.prompt').val('')
     return false
-  close: => $(@el).hide()
+  show: => $(@el).show()
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
@@ -84,10 +85,10 @@ class ChatMenuView extends Backbone.View
     return false
 
 class Channel
-  constructor: (user) ->
+  constructor: (@dest) ->
+    #@users = new Backbone.Collection([localStorage['name'], user])
     @messages = new Backbone.Collection
-    @users = new Backbone.Collection([localStorage['name'], user])
-    @chatView = new ChatView(collection: @messages, users: @users)
+    @chatView = new ChatView(collection: @messages, dest: @dest)
   addMessage: (msg) => @messages.add(msg)
   addUser: (username) => @users.add(new User username: username)
   removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
@@ -104,9 +105,13 @@ class ChatApp
     @socket.emit "connect", localStorage['name']
     @socket.on "connect", (name) => @users.each (u) -> u.set('online', true) if u.get('name') is name
     @socket.on "disconnect", (name) => @users.each (u) -> u.set('online', false) if u.get('name') is name
-    @socket.on "close", -> alert('Connection lost')
-    @socket.on "message", (data) => @channels['general'].addMessage(JSON.parse(data['msg']))
-  channels: { general: new Channel('general') }
+    #@socket.on "close", -> alert('Connection lost')
+    @socket.on "pm", (data) =>
+      @createChannel(data.from) unless @channels[data.from]?
+      @channels[data.from].addMessage(data)
+  channels: {}
+  createChannel: (dest) =>
+    if @channels[dest]? then @channels[dest].chatView.show() else @channels[dest] = new Channel(dest)
 
 $ ->
   localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
