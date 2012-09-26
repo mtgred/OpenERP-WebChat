@@ -159,7 +159,7 @@
 
     ChatView.prototype.tagName = 'li';
 
-    ChatView.prototype.className = 'pane chat-window';
+    ChatView.prototype.className = 'chat-window';
 
     ChatView.prototype.template = _.template($('#chat').html());
 
@@ -248,12 +248,12 @@
     ChatMenuView.prototype.toggle = function() {
       var offset;
       $(this.el).toggleClass('active');
-      offset = $(this.el).hasClass('active') ? 0 : -220;
+      offset = $(this.el).hasClass('active') ? 0 : -210;
       $('.chatapp').animate({
         right: offset
       });
       $('.chat-windows').animate({
-        right: offset + 220
+        right: offset + 210
       });
       return false;
     };

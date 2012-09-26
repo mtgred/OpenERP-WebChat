@@ -41,13 +41,14 @@ ellipsis()
 
 .close
   font-size: 18px
-  line-height: 18px
+  line-height: 16px
 
 .navbar
   .brand
     margin-left: 0
     padding: 8px 16px 8px
   .nav
+    font-size: 14px
     li
       a
         padding: 8px 12px
@@ -79,6 +80,7 @@ body
   background: url('../img/wood.png')
   color: #666
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5)
+  font-size: 13px
 
 ul, ol
   padding: 0
@@ -92,21 +94,22 @@ form
 
 input, textarea
   font-family: Lato, Helvetica, sans-serif
+  font-size: 13px
   color: #333
-  padding: 2px 5px
+  padding: 1px 5px
   border: 1px solid #AEB9BD
   radius(3px)
   box-shadow(inset 0 1px 4px rgba(0, 0, 0, 0.2))
 
 .avatar
-  height: 28px
-  width: 28px
+  height: 26px
+  width: 26px
   radius(3px)
   box-shadow(0 1px 3px rgba(0,0,0,.4))
-  margin-right: 6px
+  margin-right: 5px
 
 .chatapp
-  width: 220px
+  width: 210px
   position: fixed
   top: 37px
   bottom: 0
@@ -118,14 +121,14 @@ input, textarea
   .users
     overflow: auto
     li
-      padding: 3px 6px
+      padding: 2px 6px
       cursor: pointer
       font-size: 13px
       &:hover
         background: lightGrey
       .name
         display: inline-block
-        width: 156px
+        width: 152px
         ellipsis()
   header
     vertical-gradient(#fcfcfc, #dedede)
@@ -156,32 +159,30 @@ input, textarea
       &:hover
         color: #888
   .online-status
-    width: 12px
-    height: 12px
+    width: 11px
+    height: 11px
     float: right
-    margin-top: 7px
+    margin-top: 9px
 
 .chat-windows
   position: absolute
   bottom: 6px
-  right: 220px
+  right: 210px
 
-.pane
-  margin-right: 6px
+.chat-window
+  margin-right: 5px
   background: rgba(0, 0, 0, .6)
   radius(3px)
   box-shadow 0 0 3px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.3)
-
-.chat-window
-  width: 280px
+  width: 250px
   //display: inline-block
   float: right
   .chatview
     position: relative
-    height: 400px
+    height: 405px
     .messages
       overflow: auto
-      height: 335px
+      height: 340px
       ul
         padding: 3px
     .msg
@@ -190,7 +191,7 @@ input, textarea
       margin: 4px
       radius(3px)
     header
-      padding: 4px 8px 
+      padding: 3px 6px 2px
       vertical-gradient(#fcfcfc, #dedede)
       radius(3px 3px 0 0)
       border-bottom: 1px solid border-color

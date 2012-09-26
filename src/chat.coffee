@@ -46,7 +46,7 @@ class MessageView extends Backbone.View
 
 class ChatView extends Backbone.View
   tagName: 'li'
-  className: 'pane chat-window'
+  className: 'chat-window'
   template: _.template $('#chat').html()
   initialize:  ->
     @collection.bind('add', @addMessage)
@@ -79,9 +79,9 @@ class ChatMenuView extends Backbone.View
   render: => $(@el).html @template(usercount: (@collection.filter (u) -> u.get('online')).length)
   toggle: =>
     $(@el).toggleClass('active')
-    offset = if $(@el).hasClass('active') then 0 else -220
+    offset = if $(@el).hasClass('active') then 0 else -210
     $('.chatapp').animate(right: offset)
-    $('.chat-windows').animate(right: offset + 220)
+    $('.chat-windows').animate(right: offset + 210)
     return false
 
 class Channel

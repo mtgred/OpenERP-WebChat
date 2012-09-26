@@ -30,13 +30,11 @@ io.sockets.on 'connection', (socket) ->
     users[name].sid = socket.id
     socket.broadcast.emit('connect', name)
   socket.on 'disconnect', ->
-    socket.broadcast.emit('disconnect', socket.name)
     users[socket.name].online = false
-  #socket.on 'message', (data) -> socket.broadcast.emit('message', {name: socket.name, msg: data})
+    socket.broadcast.emit('disconnect', socket.name)
   socket.on 'pm', (data) ->
     d = JSON.parse(data)
-    io.sockets.socket(users[d.to].sid).emit('pm', {from: d.from, to: d.to, msg: d.msg}) if users[d.to].sid?
-    #return false
+    io.sockets.socket(users[d.to].sid).emit('pm', d) if users[d.to].sid?
 
 app.listen(3000)
 console.log('http://localhost:3000/')
