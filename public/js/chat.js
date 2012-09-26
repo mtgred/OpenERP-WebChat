@@ -338,6 +338,12 @@
       }
     };
 
+    ChatApp.prototype.getUsername = function(name) {
+      return (this.users.find(function(u) {
+        return u.get('name') === name;
+      })).get('username');
+    };
+
     return ChatApp;
 
   })();

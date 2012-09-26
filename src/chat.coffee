@@ -105,13 +105,13 @@ class ChatApp
     @socket.emit "connect", localStorage['name']
     @socket.on "connect", (name) => @users.each (u) -> u.set('online', true) if u.get('name') is name
     @socket.on "disconnect", (name) => @users.each (u) -> u.set('online', false) if u.get('name') is name
-    #@socket.on "close", -> alert('Connection lost')
     @socket.on "pm", (data) =>
       @createChannel(data.from) unless @channels[data.from]?
       @channels[data.from].addMessage(data)
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]? then @channels[dest].chatView.show() else @channels[dest] = new Channel(dest)
+  getUsername: (name) -> (@users.find (u) -> u.get('name') is name).get('username')
 
 $ ->
   localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
