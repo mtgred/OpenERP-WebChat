@@ -8,6 +8,9 @@
   font-weight: normal;
   font-style: normal;
 }
+.clear {
+  clear: both;
+}
 .oe_e {
   font-family: "entypoRegular" !important;
   font-size: 36px;
@@ -197,15 +200,21 @@ textarea {
   height: 323px;
 }
 .chat-window .chatview .messages ul {
-  padding: 3px;
+  padding: 2px;
 }
 .chat-window .chatview .msg {
   background: #fff;
-  padding: 4px;
-  margin: 4px;
+  padding: 3px;
+  margin: 3px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   border-radius: 3px;
+}
+.chat-window .chatview .msg .avatar {
+  float: left;
+}
+.chat-window .chatview .msg p {
+  margin: 0 0 0 30px;
 }
 .chat-window .chatview header {
   padding: 3px 6px 2px;

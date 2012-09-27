@@ -1,5 +1,5 @@
 (function() {
-  var Channel, ChatApp, ChatMenuView, ChatView, MessageView, User, UserView, UsersView,
+  var Channel, ChatApp, ChatMenuView, ChatView, MessageView, Messages, User, UserView, UsersView,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -124,11 +124,39 @@
 
   })(Backbone.View);
 
+  Messages = (function(_super) {
+
+    __extends(Messages, _super);
+
+    function Messages() {
+      Messages.__super__.constructor.apply(this, arguments);
+    }
+
+    Messages.prototype.add = function(msg) {
+      var m;
+      m = this.last();
+      if ((m != null) && m.get('from') === msg.from) {
+        m.get('msg').push(msg.msg);
+        return m.trigger("change");
+      } else {
+        return Messages.__super__.add.call(this, {
+          from: msg.from,
+          to: msg.to,
+          msg: [msg.msg]
+        });
+      }
+    };
+
+    return Messages;
+
+  })(Backbone.Collection);
+
   MessageView = (function(_super) {
 
     __extends(MessageView, _super);
 
     function MessageView() {
+      this.render = __bind(this.render, this);
       MessageView.__super__.constructor.apply(this, arguments);
     }
 
@@ -137,6 +165,10 @@
     MessageView.prototype.className = 'msg';
 
     MessageView.prototype.template = _.template($('#chat-message').html());
+
+    MessageView.prototype.initialize = function() {
+      return this.model.bind('change', this.render);
+    };
 
     MessageView.prototype.render = function() {
       return $(this.el).html(this.template(this.model.toJSON()));
@@ -187,6 +219,7 @@
 
     ChatView.prototype.sendMessage = function(e) {
       var input;
+      e.preventDefault();
       input = $(this.el).find('.prompt').val();
       if (input) {
         app.socket.emit('pm', JSON.stringify({
@@ -199,8 +232,7 @@
           msg: input
         });
       }
-      $(this.el).find('.prompt').val('');
-      return false;
+      return $(this.el).find('.prompt').val('');
     };
 
     ChatView.prototype.show = function() {
@@ -268,8 +300,7 @@
       this.dest = dest;
       this.removeUser = __bind(this.removeUser, this);
       this.addUser = __bind(this.addUser, this);
-      this.addMessage = __bind(this.addMessage, this);
-      this.messages = new Backbone.Collection;
+      this.messages = new Messages;
       this.chatView = new ChatView({
         collection: this.messages,
         dest: this.dest

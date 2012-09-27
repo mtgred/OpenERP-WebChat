@@ -38,17 +38,27 @@ class UsersView extends Backbone.View
     $('.searchbox').val('').focus()
     @render()
 
+class Messages extends Backbone.Collection
+  add: (msg) ->
+    m = @last()
+    if m? and m.get('from') is msg.from
+      m.get('msg').push(msg.msg)
+      m.trigger("change")
+    else
+      super(from: msg.from, to: msg.to, msg: [msg.msg])
+
 class MessageView extends Backbone.View
   tagName: 'li'
   className: 'msg'
   template: _.template $('#chat-message').html()
-  render: -> $(@el).html(@template @model.toJSON())
+  initialize: -> @model.bind('change', @render)
+  render: => $(@el).html(@template @model.toJSON())
 
 class ChatView extends Backbone.View
   tagName: 'li'
   className: 'chat-window'
   template: _.template $('#chat').html()
-  initialize:  ->
+  initialize: ->
     @collection.bind('add', @addMessage)
     $('.chat-windows').append($(@el).html(@template(title: @options.dest)))
     $('.prompt').focus()
@@ -59,12 +69,12 @@ class ChatView extends Backbone.View
     $(@el).find('.messages > ul').append((new MessageView model: msg).render()).parent().scrollTop(99999)
     @show()
   sendMessage: (e) =>
+    e.preventDefault()
     input = $(@el).find('.prompt').val()
     if input
       app.socket.emit('pm', JSON.stringify({from: localStorage['name'], to: @options.dest, msg: input}))
       @collection.add(from: localStorage['name'], msg: input)
     $(@el).find('.prompt').val('')
-    return false
   show: => $(@el).show()
 
 class ChatMenuView extends Backbone.View
@@ -87,9 +97,9 @@ class ChatMenuView extends Backbone.View
 class Channel
   constructor: (@dest) ->
     #@users = new Backbone.Collection([localStorage['name'], user])
-    @messages = new Backbone.Collection
+    @messages = new Messages
     @chatView = new ChatView(collection: @messages, dest: @dest)
-  addMessage: (msg) => @messages.add(msg)
+  addMessage: (msg) -> @messages.add(msg)
   addUser: (username) => @users.add(new User username: username)
   removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
 
