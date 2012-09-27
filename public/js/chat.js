@@ -92,7 +92,7 @@
       var _this = this;
       $(this.el).find('> ul').empty();
       return this.collection.each(function(user) {
-        if (user.get('name') !== localStorage['name']) return _this.addUser(user);
+        return _this.addUser(user);
       });
     };
 
@@ -300,8 +300,17 @@
 
     function ChatApp() {
       this.createChannel = __bind(this.createChannel, this);
-      var _this = this;
-      this.users = new Backbone.Collection(window.users);
+      var k, v,
+        _this = this;
+      this.users = new Backbone.Collection((function() {
+        var _results;
+        _results = [];
+        for (k in users) {
+          v = users[k];
+          if (k !== localStorage['name']) _results.push(v);
+        }
+        return _results;
+      })());
       this.usersView = new UsersView({
         collection: this.users
       });
@@ -336,18 +345,6 @@
       }
     };
 
-    ChatApp.prototype.getUsername = function(name) {
-      var user;
-      user = this.users.find(function(u) {
-        return u.get('name') === name;
-      });
-      if (user != null) {
-        return user.get('username');
-      } else {
-        return 'avatar';
-      }
-    };
-
     return ChatApp;
 
   })();
@@ -358,7 +355,7 @@
       localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000);
     }
     $('.user-box').text(localStorage['name']);
-    $('.user-box').prepend("<img src='/img/avatar/" + (app.getUsername(localStorage['name'])) + ".jpeg' class='avatar' />");
+    $('.user-box').prepend("<img src='/img/avatar/" + users[localStorage['name']].username + ".jpeg' class='avatar' />");
     return $('#change-name .save').click(function() {
       $('.user-box').text($('#change-name input').val());
       return localStorage['name'] = $('#change-name input').val();

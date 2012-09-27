@@ -52,7 +52,7 @@ script(type="text/template", id="chat-menu")
     span.oe_e +
 
 script(type="text/template", id="chat-message")
-  | <img src="/img/avatar/<% print(app.getUsername(from)) %>.jpeg" class="avatar" /><%= msg %>
+  | <img src="/img/avatar/<% print(users[from].username) %>.jpeg" class="avatar" /><%= msg %>
 
 script(type="text/template", id="chat")
   div.chatview

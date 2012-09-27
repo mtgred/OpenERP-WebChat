@@ -24,7 +24,7 @@ class UsersView extends Backbone.View
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
   render: =>
     $(@el).find('> ul').empty()
-    @collection.each (user) => @addUser(user) if user.get('name') isnt localStorage['name']
+    @collection.each (user) => @addUser(user)
   filter: =>
     s = $('.searchbox').val().toLowerCase()
     if s
@@ -95,7 +95,7 @@ class Channel
 
 class ChatApp
   constructor: ->
-    @users = new Backbone.Collection(window.users)
+    @users = new Backbone.Collection(v for k, v of users when k isnt localStorage['name'])
     @usersView = new UsersView(collection: @users)
     @chatmenuView = new ChatMenuView(collection: @users)
 
@@ -109,15 +109,12 @@ class ChatApp
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]? then @channels[dest].chatView.show() else @channels[dest] = new Channel(dest)
-  getUsername: (name) ->
-    user= (@users.find (u) -> u.get('name') is name)
-    if user? then user.get('username') else 'avatar'
 
 $ ->
   window.app = new ChatApp
   localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
   $('.user-box').text(localStorage['name'])
-  $('.user-box').prepend("<img src='/img/avatar/#{app.getUsername(localStorage['name'])}.jpeg' class='avatar' />")
+  $('.user-box').prepend("<img src='/img/avatar/#{users[localStorage['name']].username}.jpeg' class='avatar' />")
   $('#change-name .save').click ->
     $('.user-box').text($('#change-name input').val())
     localStorage['name'] = $('#change-name input').val()

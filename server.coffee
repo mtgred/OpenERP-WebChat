@@ -20,7 +20,7 @@ users =
   'Julien Thewys': {name: 'Julien Thewys', username: 'jth', online: false, messages: []}
   'Nicoleta Gherlea': {name: 'Nicoleta Gherlea', username: 'ngh', online: false, messages: []}
 
-app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP', users: (v for k, v of users))
+app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP', users: users)
 
 io.sockets.on 'connection', (socket) ->
   socket.on 'connect', (name) ->
