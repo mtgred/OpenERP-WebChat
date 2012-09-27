@@ -13,12 +13,6 @@ box-shadow()
   -webkit-box-shadow: arguments
   box-shadow: arguments
 
-opacity(opacity)
-  //filter: alpha(opacity=opacity * 100)
-  -khtml-opacity: opacity
-  -moz-opacity: opacity
-  opacity: opacity
-
 ellipsis()
   text-overflow: ellipsis
   white-space: nowrap
@@ -62,6 +56,12 @@ ellipsis()
       margin-left: 3px
       position: relative
       top: 4px
+    .user-box
+      padding-left: 30px
+      .avatar
+        position: absolute
+        top: 4px
+        left: 8px
 
 .navbar-inner
   min-height: 36px
@@ -128,7 +128,7 @@ input, textarea
         background: lightGrey
       .name
         display: inline-block
-        width: 152px
+        width: 150px
         ellipsis()
   header
     vertical-gradient(#fcfcfc, #dedede)
@@ -162,7 +162,7 @@ input, textarea
     width: 11px
     height: 11px
     float: right
-    margin-top: 9px
+    margin-top: 6px
 
 .chat-windows
   position: absolute
@@ -175,14 +175,13 @@ input, textarea
   radius(3px)
   box-shadow 0 0 3px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.3)
   width: 250px
-  //display: inline-block
   float: right
   .chatview
     position: relative
-    height: 405px
+    height: 380px
     .messages
       overflow: auto
-      height: 340px
+      height: 323px
       ul
         padding: 3px
     .msg

@@ -10,7 +10,7 @@ div.navbar.navbar-fixed-top
     ul.nav.pull-right
       li.dropdown
         a.dropdown-toggle(href="#user-dropdown", data-toggle="dropdown")
-          span.user-box Username
+          span.user-box _
           b.caret
         ul.dropdown-menu
           li
@@ -31,9 +31,12 @@ div.modal.hide#change-name
   div.modal-footer
     button.btn.btn-primary.save(data-dismiss="modal") Save
     button.btn(data-dismiss="modal") Cancel
+
+script(type="text/javascript")
+  users = !{JSON.stringify(users)}
   
 script(type="text/template", id="chat-user")
-  | <img src="/img/avatar/<%= username %>.jpeg" class="avatar" />
+  img.avatar(src!="/img/avatar/<%= username %>.jpeg")
   div.name <%= name %>
   | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 
@@ -61,4 +64,5 @@ script(type="text/template", id="chat")
     footer
       form
         input.prompt(placeholder="Say something...")
+
 

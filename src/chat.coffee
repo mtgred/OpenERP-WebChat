@@ -95,9 +95,7 @@ class Channel
 
 class ChatApp
   constructor: ->
-    @users = new Backbone.Collection
-    @users.url = '/users'
-    @users.fetch()
+    @users = new Backbone.Collection(window.users)
     @usersView = new UsersView(collection: @users)
     @chatmenuView = new ChatMenuView(collection: @users)
 
@@ -111,13 +109,15 @@ class ChatApp
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]? then @channels[dest].chatView.show() else @channels[dest] = new Channel(dest)
-  getUsername: (name) -> (@users.find (u) -> u.get('name') is name).get('username')
+  getUsername: (name) ->
+    user= (@users.find (u) -> u.get('name') is name)
+    if user? then user.get('username') else 'avatar'
 
 $ ->
+  window.app = new ChatApp
   localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
   $('.user-box').text(localStorage['name'])
+  $('.user-box').prepend("<img src='/img/avatar/#{app.getUsername(localStorage['name'])}.jpeg' class='avatar' />")
   $('#change-name .save').click ->
     $('.user-box').text($('#change-name input').val())
     localStorage['name'] = $('#change-name input').val()
-
-  window.app = new ChatApp

@@ -301,9 +301,7 @@
     function ChatApp() {
       this.createChannel = __bind(this.createChannel, this);
       var _this = this;
-      this.users = new Backbone.Collection;
-      this.users.url = '/users';
-      this.users.fetch();
+      this.users = new Backbone.Collection(window.users);
       this.usersView = new UsersView({
         collection: this.users
       });
@@ -339,9 +337,15 @@
     };
 
     ChatApp.prototype.getUsername = function(name) {
-      return (this.users.find(function(u) {
+      var user;
+      user = this.users.find(function(u) {
         return u.get('name') === name;
-      })).get('username');
+      });
+      if (user != null) {
+        return user.get('username');
+      } else {
+        return 'avatar';
+      }
     };
 
     return ChatApp;
@@ -349,15 +353,16 @@
   })();
 
   $(function() {
+    window.app = new ChatApp;
     if (!localStorage['name']) {
       localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000);
     }
     $('.user-box').text(localStorage['name']);
-    $('#change-name .save').click(function() {
+    $('.user-box').prepend("<img src='/img/avatar/" + (app.getUsername(localStorage['name'])) + ".jpeg' class='avatar' />");
+    return $('#change-name .save').click(function() {
       $('.user-box').text($('#change-name input').val());
       return localStorage['name'] = $('#change-name input').val();
     });
-    return window.app = new ChatApp;
   });
 
 }).call(this);

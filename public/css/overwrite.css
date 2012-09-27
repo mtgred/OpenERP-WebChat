@@ -41,6 +41,14 @@
   position: relative;
   top: 4px;
 }
+.navbar .nav .user-box {
+  padding-left: 30px;
+}
+.navbar .nav .user-box .avatar {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+}
 .navbar-inner {
   min-height: 36px;
 }
@@ -115,7 +123,7 @@ textarea {
 }
 .chatapp .users li .name {
   display: inline-block;
-  width: 152px;
+  width: 150px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -161,7 +169,7 @@ textarea {
   width: 11px;
   height: 11px;
   float: right;
-  margin-top: 9px;
+  margin-top: 6px;
 }
 .chat-windows {
   position: absolute;
@@ -182,11 +190,11 @@ textarea {
 }
 .chat-window .chatview {
   position: relative;
-  height: 405px;
+  height: 380px;
 }
 .chat-window .chatview .messages {
   overflow: auto;
-  height: 340px;
+  height: 323px;
 }
 .chat-window .chatview .messages ul {
   padding: 3px;
