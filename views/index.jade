@@ -57,7 +57,9 @@ block body
   script(type="text/template", id="chat-message")
     img.avatar(src!="/img/avatar/<% print(users[from].username) %>.jpeg")
     | <% _.each(messages, function(m) { %>
-    | <p><%= m.time %><br/><%= m.msg %></p> <% }); %>
+    | <% minutes = m.time.getMinutes(); %>
+    | <% time = m.time.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
+    | <p><span class="time"><%= time %></span><%= m.msg %></p> <% }); %>
     div.clear
 
   script(type="text/template", id="chat")
