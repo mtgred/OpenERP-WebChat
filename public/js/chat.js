@@ -136,13 +136,21 @@
       var m;
       m = this.last();
       if ((m != null) && m.get('from') === msg.from) {
-        m.get('msg').push(msg.msg);
+        m.get('messages').push({
+          msg: msg.msg,
+          time: new Date()
+        });
         return m.trigger("change");
       } else {
         return Messages.__super__.add.call(this, {
           from: msg.from,
           to: msg.to,
-          msg: [msg.msg]
+          messages: [
+            {
+              msg: msg.msg,
+              time: new Date()
+            }
+          ]
         });
       }
     };

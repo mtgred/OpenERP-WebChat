@@ -29,7 +29,7 @@ class UsersView extends Backbone.View
     s = $('.searchbox').val().toLowerCase()
     if s
       $(@el).find('> ul').empty()
-      @addUser(u) for u in @collection.filter (u) -> ~u.get('name').toLowerCase().indexOf s
+      @addUser(u) for u in @collection.filter (u) -> ~u.get('name').toLowerCase().indexOf(s)
       $('.searchclear').fadeIn('fast')
     else
       @searchclear()
@@ -42,10 +42,10 @@ class Messages extends Backbone.Collection
   add: (msg) ->
     m = @last()
     if m? and m.get('from') is msg.from
-      m.get('msg').push(msg.msg)
+      m.get('messages').push({msg: msg.msg, time: new Date()})
       m.trigger("change")
     else
-      super(from: msg.from, to: msg.to, msg: [msg.msg])
+      super(from: msg.from, to: msg.to, messages: [{msg: msg.msg, time: new Date()}])
 
 class MessageView extends Backbone.View
   tagName: 'li'

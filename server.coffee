@@ -1,7 +1,8 @@
-express = require('express')
 stylus = require('stylus')
-app = express.createServer()
-io = require('socket.io').listen(app)
+express = require('express')
+app = express()
+server = require('http').createServer(app)
+io = require('socket.io').listen(server)
 
 app.configure ->
   app.use express.bodyParser()
@@ -40,5 +41,5 @@ io.sockets.on 'connection', (socket) ->
     else
       users[d.to].messages.push(d)
 
-app.listen(3000)
+server.listen(3000)
 console.log('http://localhost:3000/')
