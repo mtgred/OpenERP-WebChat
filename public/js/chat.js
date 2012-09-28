@@ -197,6 +197,7 @@
 
     ChatView.prototype.initialize = function() {
       this.collection.bind('add', this.addMessage);
+      this.collection.bind('all', this.show);
       $('.chat-windows').append($(this.el).html(this.template({
         title: this.options.dest
       })));
@@ -211,10 +212,9 @@
     };
 
     ChatView.prototype.addMessage = function(msg) {
-      $(this.el).find('.messages > ul').append((new MessageView({
+      return $(this.el).find('.messages > ul').append((new MessageView({
         model: msg
-      })).render()).parent().scrollTop(99999);
-      return this.show();
+      })).render());
     };
 
     ChatView.prototype.sendMessage = function(e) {
@@ -236,7 +236,7 @@
     };
 
     ChatView.prototype.show = function() {
-      return $(this.el).show();
+      return $(this.el).show().find('.messages').scrollTop(99999);
     };
 
     return ChatView;

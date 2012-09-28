@@ -60,14 +60,14 @@ class ChatView extends Backbone.View
   template: _.template $('#chat').html()
   initialize: ->
     @collection.bind('add', @addMessage)
+    @collection.bind('all', @show)
     $('.chat-windows').append($(@el).html(@template(title: @options.dest)))
     $('.prompt').focus()
   events:
     'submit form': 'sendMessage'
     'click .close': -> $(@el).hide()
   addMessage: (msg) =>
-    $(@el).find('.messages > ul').append((new MessageView model: msg).render()).parent().scrollTop(99999)
-    @show()
+    $(@el).find('.messages > ul').append((new MessageView model: msg).render())
   sendMessage: (e) =>
     e.preventDefault()
     input = $(@el).find('.prompt').val()
@@ -75,7 +75,7 @@ class ChatView extends Backbone.View
       app.socket.emit('pm', JSON.stringify({from: localStorage['name'], to: @options.dest, msg: input}))
       @collection.add(from: localStorage['name'], msg: input)
     $(@el).find('.prompt').val('')
-  show: => $(@el).show()
+  show: => $(@el).show().find('.messages').scrollTop(99999)
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
