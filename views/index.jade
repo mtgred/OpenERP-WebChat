@@ -56,10 +56,15 @@ block body
 
   script(type="text/template", id="chat-message")
     img.avatar(src!="/img/avatar/<% print(users[from].username) %>.jpeg")
+    span.from.text-info <%= messages[0].from %>
+    | <% t = messages[0].time; %>
+    | <% minutes = t.getMinutes(); %>
+    | <% time = t.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
+    span.time
+      | <%= time %>
     | <% _.each(messages, function(m) { %>
-    | <% minutes = m.time.getMinutes(); %>
-    | <% time = m.time.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
-    | <p><span class="time"><%= time %></span><%= m.msg %></p> <% }); %>
+    | <p><%= m.msg %></p>
+    | <% }); %>
     div.clear
 
   script(type="text/template", id="chat")
