@@ -136,21 +136,13 @@
       var m;
       m = this.last();
       if ((m != null) && m.get('from') === msg.from) {
-        m.get('messages').push({
-          msg: msg.msg,
-          time: new Date()
-        });
+        m.get('messages').push(msg);
         return m.trigger("change");
       } else {
         return Messages.__super__.add.call(this, {
           from: msg.from,
           to: msg.to,
-          messages: [
-            {
-              msg: msg.msg,
-              time: new Date()
-            }
-          ]
+          messages: [msg]
         });
       }
     };
@@ -226,19 +218,18 @@
     };
 
     ChatView.prototype.sendMessage = function(e) {
-      var input;
+      var input, m;
       e.preventDefault();
       input = $(this.el).find('.prompt').val();
       if (input) {
-        app.socket.emit('pm', JSON.stringify({
+        m = {
           from: localStorage['name'],
           to: this.options.dest,
-          msg: input
-        }));
-        this.collection.add({
-          from: localStorage['name'],
-          msg: input
-        });
+          msg: input,
+          time: new Date()
+        };
+        app.socket.emit('pm', JSON.stringify(m));
+        this.collection.add(m);
       }
       return $(this.el).find('.prompt').val('');
     };
@@ -316,6 +307,7 @@
     }
 
     Channel.prototype.addMessage = function(msg) {
+      msg.time = new Date(msg.time);
       return this.messages.add(msg);
     };
 

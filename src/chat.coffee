@@ -42,10 +42,10 @@ class Messages extends Backbone.Collection
   add: (msg) ->
     m = @last()
     if m? and m.get('from') is msg.from
-      m.get('messages').push({msg: msg.msg, time: new Date()})
+      m.get('messages').push(msg)
       m.trigger("change")
     else
-      super(from: msg.from, to: msg.to, messages: [{msg: msg.msg, time: new Date()}])
+      super(from: msg.from, to: msg.to, messages: [msg])
 
 class MessageView extends Backbone.View
   tagName: 'li'
@@ -72,8 +72,9 @@ class ChatView extends Backbone.View
     e.preventDefault()
     input = $(@el).find('.prompt').val()
     if input
-      app.socket.emit('pm', JSON.stringify({from: localStorage['name'], to: @options.dest, msg: input}))
-      @collection.add(from: localStorage['name'], msg: input)
+      m = {from: localStorage['name'], to: @options.dest, msg: input, time: new Date()}
+      app.socket.emit 'pm', JSON.stringify(m)
+      @collection.add(m)
     $(@el).find('.prompt').val('')
   show: => $(@el).show().find('.messages').scrollTop(99999)
 
@@ -99,7 +100,9 @@ class Channel
     #@users = new Backbone.Collection([localStorage['name'], user])
     @messages = new Messages
     @chatView = new ChatView(collection: @messages, dest: @dest)
-  addMessage: (msg) -> @messages.add(msg)
+  addMessage: (msg) ->
+    msg.time = new Date(msg.time)
+    @messages.add(msg)
   addUser: (username) => @users.add(new User username: username)
   removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
 
