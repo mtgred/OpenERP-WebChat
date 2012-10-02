@@ -216,6 +216,9 @@ textarea {
 .chat-window .chatview .msg .time {
   float: right;
 }
+.chat-window .chatview .msg .from {
+  font-weight: bold;
+}
 .chat-window .chatview .msg p {
   margin: 0 0 0 30px;
 }
