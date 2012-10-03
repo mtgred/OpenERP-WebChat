@@ -31,6 +31,21 @@ ellipsis()
 .clear
   clear: both
 
+* html .clearfix
+  height: 1%
+  overflow: visible
+
+*+html .clearfix
+  min-height: 1%
+
+.clearfix:after
+  clear: both
+  content: "."
+  display: block
+  height: 0
+  visibility: hidden
+  font-size: 0
+
 .oe_e
   font-family: "entypoRegular" !important
   font-size: 36px
@@ -70,8 +85,9 @@ ellipsis()
   min-height: 36px
 
 // Colours
-border-color= #AEB9BD
+border-color = #AEB9BD
 background-color = #E8EBEF
+faded-text = #999
 
 * 
   -moz-box-sizing: border-box
@@ -84,6 +100,7 @@ body
   color: #666
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5)
   font-size: 13px
+  overflow: hidden
 
 ul, ol
   padding: 0
@@ -109,7 +126,7 @@ input, textarea
   width: 26px
   radius(3px)
   box-shadow(0 1px 3px rgba(0,0,0,.4))
-  margin-right: 5px
+  margin-right: 4px
 
 .chatapp
   width: 210px
@@ -182,29 +199,15 @@ input, textarea
   .chatview
     position: relative
     height: 380px
-    .messages
-      overflow: auto
-      height: 323px
-      ul
-        padding: 2px
-    .msg
-      background: white
-      padding: 3px
-      margin: 3px
-      radius(3px)
-      .avatar
-        float: left
-      .time
-        float: right
-      .from
-        font-weight: bold
-      p
-        margin: 0 0 0 30px
-    header
+    > header
       padding: 3px 6px 2px
       vertical-gradient(#fcfcfc, #dedede)
       radius(3px 3px 0 0)
       border-bottom: 1px solid border-color
+      cursor: pointer
+    .unreadMsg
+      display: none
+      margin-left: 3px
     footer
       position: absolute
       bottom: 0
@@ -214,5 +217,38 @@ input, textarea
       border-top: 1px solid border-color
       vertical-gradient(#fcfcfc, #dedede)
       radius(0 0 3px 3px)
+    .messages
+      overflow: auto
+      height: 323px
+    .msg
+      background: white
+      padding: 3px
+      margin: 3px
+      radius(3px)
+      .avatar
+        float: left
+      .time
+        float: right
+        line-height: 13px
+        font-size: 11px
+        color: faded-text
+      .from
+        margin: 0 0 2px 0
+        line-height: 14px
+        font-weight: bold
+        font-size: 12px
+        width: 178px
+        ellipsis()
+      li
+        margin: 0 0 2px 30px
+        line-height: 14px
+        &:last-child
+          margin-bottom: 0
     .prompt
       width: 100%
+
+.chat-window.folded
+  .messages, footer
+    display: none
+  header
+    radius(3px)

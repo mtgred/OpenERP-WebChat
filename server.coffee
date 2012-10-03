@@ -32,8 +32,8 @@ io.sockets.on 'connection', (socket) ->
     io.sockets.socket(socket.id).emit('pm', msg) for msg in users[name].messages
     users[name].messages = []
   socket.on 'disconnect', ->
-    users[socket.name].online = false
-    socket.broadcast.emit('disconnect', socket.name)
+    users[socket.name].online = false if socket.name?
+    socket.broadcast.emit('disconnect', socket.name) if socket.name?
   socket.on 'pm', (data) ->
     d = JSON.parse(data)
     if users[d.to].online

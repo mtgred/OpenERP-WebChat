@@ -1,20 +1,8 @@
 (function() {
-  var Channel, ChatApp, ChatMenuView, ChatView, MessageView, Messages, User, UserView, UsersView,
+  var Channel, ChatApp, ChatMenuView, ChatView, MessageView, Messages, UserView, UsersView,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-  User = (function(_super) {
-
-    __extends(User, _super);
-
-    function User() {
-      User.__super__.constructor.apply(this, arguments);
-    }
-
-    return User;
-
-  })(Backbone.Model);
 
   UserView = (function(_super) {
 
@@ -183,6 +171,7 @@
     __extends(ChatView, _super);
 
     function ChatView() {
+      this.toggle = __bind(this.toggle, this);
       this.show = __bind(this.show, this);
       this.sendMessage = __bind(this.sendMessage, this);
       this.addMessage = __bind(this.addMessage, this);
@@ -206,13 +195,17 @@
 
     ChatView.prototype.events = {
       'submit form': 'sendMessage',
+      'click header': 'toggle',
       'click .close': function() {
-        return $(this.el).hide();
+        $(this.el).hide();
+        return this.toggle();
       }
     };
 
+    ChatView.prototype.unreadMsg = 0;
+
     ChatView.prototype.addMessage = function(msg) {
-      return $(this.el).find('.messages > ul').append((new MessageView({
+      return $(this.el).find('.messages').append((new MessageView({
         model: msg
       })).render());
     };
@@ -235,7 +228,34 @@
     };
 
     ChatView.prototype.show = function() {
-      return $(this.el).show().find('.messages').scrollTop(99999);
+      $(this.el).show().find('.messages').scrollTop(99999);
+      $('.prompt').focus();
+      if ($(this.el).hasClass('folded')) {
+        return $(this.el).find('.unreadMsg').text(++this.unreadMsg).show();
+      }
+    };
+
+    ChatView.prototype.toggle = function() {
+      var _this = this;
+      if ($(this.el).hasClass('folded')) {
+        $(this.el).animate({
+          height: '380px'
+        }, {
+          complete: function() {
+            $(_this.el).removeClass('folded').find('.unreadMsg').hide();
+            return $('.prompt').focus();
+          }
+        });
+        return this.unreadMsg = 0;
+      } else {
+        return $(this.el).animate({
+          height: '25px'
+        }, {
+          complete: function() {
+            return $(_this.el).addClass('folded');
+          }
+        });
+      }
     };
 
     return ChatView;
@@ -297,8 +317,6 @@
 
     function Channel(dest) {
       this.dest = dest;
-      this.removeUser = __bind(this.removeUser, this);
-      this.addUser = __bind(this.addUser, this);
       this.messages = new Messages;
       this.chatView = new ChatView({
         collection: this.messages,
@@ -309,18 +327,6 @@
     Channel.prototype.addMessage = function(msg) {
       msg.time = new Date(msg.time);
       return this.messages.add(msg);
-    };
-
-    Channel.prototype.addUser = function(username) {
-      return this.users.add(new User({
-        username: username
-      }));
-    };
-
-    Channel.prototype.removeUser = function(username) {
-      return this.users.each(function(user) {
-        if (user.get('username') === username) return user.destroy();
-      });
     };
 
     return Channel;

@@ -56,24 +56,24 @@ block body
 
   script(type="text/template", id="chat-message")
     img.avatar(src!="/img/avatar/<% print(users[from].username) %>.jpeg")
-    span.from.text-info <%= messages[0].from %>
-    | <% t = messages[0].time; %>
-    | <% minutes = t.getMinutes(); %>
-    | <% time = t.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
     span.time
+      | <% t = messages[0].time; %>
+      | <% minutes = t.getMinutes(); %>
+      | <% time = t.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
       | <%= time %>
-    | <% _.each(messages, function(m) { %>
-    | <p><%= m.msg %></p>
-    | <% }); %>
-    div.clear
+    div.from.text-info <%= messages[0].from %>
+    ul
+      | <% _.each(messages, function(m) { %>
+      | <li><%= m.msg %></li>
+      | <% }); %>
 
   script(type="text/template", id="chat")
     div.chatview
       header
         <%= title %>
+        span.unreadMsg.label.label-important 
         button.close ×
-      div.messages
-        ul
+      ul.messages.clearfix
       footer
         form
           input.prompt(placeholder="Say something...")

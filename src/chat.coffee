@@ -1,5 +1,3 @@
-class User extends Backbone.Model
-
 class UserView extends Backbone.View
   tagName: 'li'
   className: 'user'
@@ -65,9 +63,10 @@ class ChatView extends Backbone.View
     $('.prompt').focus()
   events:
     'submit form': 'sendMessage'
-    'click .close': -> $(@el).hide()
-  addMessage: (msg) =>
-    $(@el).find('.messages > ul').append((new MessageView model: msg).render())
+    'click header': 'toggle'
+    'click .close': -> $(@el).hide(); @toggle()
+  unreadMsg: 0
+  addMessage: (msg) => $(@el).find('.messages').append((new MessageView model: msg).render())
   sendMessage: (e) =>
     e.preventDefault()
     input = $(@el).find('.prompt').val()
@@ -76,7 +75,17 @@ class ChatView extends Backbone.View
       app.socket.emit 'pm', JSON.stringify(m)
       @collection.add(m)
     $(@el).find('.prompt').val('')
-  show: => $(@el).show().find('.messages').scrollTop(99999)
+  show: =>
+    $(@el).show().find('.messages').scrollTop(99999); $('.prompt').focus()
+    $(@el).find('.unreadMsg').text(++@unreadMsg).show() if $(@el).hasClass('folded')
+  toggle: =>
+    if $(@el).hasClass('folded')
+      $(@el).animate { height: '380px' }, complete: =>
+        $(@el).removeClass('folded').find('.unreadMsg').hide()
+        $('.prompt').focus()
+      @unreadMsg = 0
+    else
+      $(@el).animate({ height: '25px' }, { complete: => $(@el).addClass('folded') })
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
@@ -103,8 +112,8 @@ class Channel
   addMessage: (msg) ->
     msg.time = new Date(msg.time)
     @messages.add(msg)
-  addUser: (username) => @users.add(new User username: username)
-  removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
+  #addUser: (username) => @users.add(new Backbone.Model(username: username))
+  #removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
 
 class ChatApp
   constructor: ->
