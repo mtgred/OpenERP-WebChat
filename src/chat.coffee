@@ -96,7 +96,8 @@ class ChatMenuView extends Backbone.View
     $('.nav.pull-right').prepend(@el)
     @render()
   events: 'click': 'toggle'
-  render: => $(@el).html @template(usercount: (@collection.filter (u) -> u.get('online')).length)
+  render: =>
+    $(@el).html(@template(usercount: (@collection.filter (u) -> u.get('online')).length))
   toggle: =>
     $(@el).toggleClass('active')
     offset = if $(@el).hasClass('active') then 0 else -210
@@ -106,37 +107,54 @@ class ChatMenuView extends Backbone.View
 
 class Channel
   constructor: (@dest) ->
-    #@users = new Backbone.Collection([localStorage['name'], user])
     @messages = new Messages
     @chatView = new ChatView(collection: @messages, dest: @dest)
   addMessage: (msg) ->
     msg.time = new Date(msg.time)
     @messages.add(msg)
-  #addUser: (username) => @users.add(new Backbone.Model(username: username))
-  #removeUser: (username) => @users.each (user) -> user.destroy() if user.get('username') is username
 
 class ChatApp
   constructor: ->
-    @users = new Backbone.Collection(v for k, v of users when k isnt localStorage['name'])
-    @usersView = new UsersView(collection: @users)
-    @chatmenuView = new ChatMenuView(collection: @users)
-
-    @socket = io.connect('/')
-    @socket.emit "connect", localStorage['name']
-    @socket.on "connect", (name) => @users.each (u) -> u.set('online', true) if u.get('name') is name
-    @socket.on "disconnect", (name) => @users.each (u) -> u.set('online', false) if u.get('name') is name
-    @socket.on "pm", (data) =>
-      @createChannel(data.from) unless @channels[data.from]?
-      @channels[data.from].addMessage(data)
+    @instance = openerp.init([])
+    openerp.web.corelib(@instance)
+    openerp.web.coresetup(@instance)
+    openerp.web.data(@instance)
+    @instance.session.session_bind('http://localhost:8069')
   channels: {}
   createChannel: (dest) =>
-    if @channels[dest]? then @channels[dest].chatView.show() else @channels[dest] = new Channel(dest)
+    if @channels[dest]?
+      @channels[dest].chatView.show()
+    else
+      @channels[dest] = new Channel(dest)
+  login: (db, login, password) =>
+    @instance.session.session_authenticate(db, login, password, false).then =>
+      Users = new instance.web.Model('res.users')
+      Users.query(['name', 'login', 'image']).all().then (users) =>
+        @currentUser = _(users).find (u) -> u.login is login
+        users = {id: u.id, name: u.name, image: u.image} for u in users when u.id isnt @currentUsers.id
+        @users = new Backbone.Collection(users)
+        @usersView = new UsersView(collection: @users)
+        @chatmenuView = new ChatMenuView(collection: @users)
+        @socket = io.connect('/')
+        @socket.emit "connect", localStorage['name']
+        @socket.on "connect", (id) =>
+          @users.each (u) -> u.set('online', true) if u.get('id') is id
+        @socket.on "disconnect", (id) =>
+          @users.each (u) -> u.set('online', false) if u.get('id') is id
+        @socket.on "pm", (data) =>
+          @createChannel(data.from) unless @channels[data.from]?
+          @channels[data.from].addMessage(data)
 
 $ ->
   window.app = new ChatApp
-  localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
-  $('.user-box').text(localStorage['name'])
-  $('.user-box').prepend("<img src='/img/avatar/#{users[localStorage['name']].username}.jpeg' class='avatar' />")
+  #localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
+  #$('.user-box').text(localStorage['name'])
+  #$('.user-box').prepend("<img src='/img/avatar/#{users[localStorage['name']].username}.jpeg' class='avatar' />")
+  $('.login').submit (e) ->
+    e.preventDefault()
+    app.login 'foobar', $("input[name='login']").val(), $("input[name='password']").val()
+
+
   $('#change-name .save').click ->
     $('.user-box').text($('#change-name input').val())
     localStorage['name'] = $('#change-name input').val()

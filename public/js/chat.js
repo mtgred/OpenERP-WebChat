@@ -336,40 +336,12 @@
   ChatApp = (function() {
 
     function ChatApp() {
-      this.createChannel = __bind(this.createChannel, this);
-      var k, v,
-        _this = this;
-      this.users = new Backbone.Collection((function() {
-        var _results;
-        _results = [];
-        for (k in users) {
-          v = users[k];
-          if (k !== localStorage['name']) _results.push(v);
-        }
-        return _results;
-      })());
-      this.usersView = new UsersView({
-        collection: this.users
-      });
-      this.chatmenuView = new ChatMenuView({
-        collection: this.users
-      });
-      this.socket = io.connect('/');
-      this.socket.emit("connect", localStorage['name']);
-      this.socket.on("connect", function(name) {
-        return _this.users.each(function(u) {
-          if (u.get('name') === name) return u.set('online', true);
-        });
-      });
-      this.socket.on("disconnect", function(name) {
-        return _this.users.each(function(u) {
-          if (u.get('name') === name) return u.set('online', false);
-        });
-      });
-      this.socket.on("pm", function(data) {
-        if (_this.channels[data.from] == null) _this.createChannel(data.from);
-        return _this.channels[data.from].addMessage(data);
-      });
+      this.login = __bind(this.login, this);
+      this.createChannel = __bind(this.createChannel, this);      this.instance = openerp.init([]);
+      openerp.web.corelib(this.instance);
+      openerp.web.coresetup(this.instance);
+      openerp.web.data(this.instance);
+      this.instance.session.session_bind('http://localhost:8069');
     }
 
     ChatApp.prototype.channels = {};
@@ -382,17 +354,63 @@
       }
     };
 
+    ChatApp.prototype.login = function(db, login, password) {
+      var _this = this;
+      return this.instance.session.session_authenticate(db, login, password, false).then(function() {
+        var Users;
+        Users = new instance.web.Model('res.users');
+        return Users.query(['name', 'login', 'image']).all().then(function(users) {
+          var u, _i, _len;
+          _this.currentUser = _(users).find(function(u) {
+            return u.login === login;
+          });
+          for (_i = 0, _len = users.length; _i < _len; _i++) {
+            u = users[_i];
+            if (u.id !== _this.currentUsers.id) {
+              users = {
+                id: u.id,
+                name: u.name,
+                image: u.image
+              };
+            }
+          }
+          _this.users = new Backbone.Collection(users);
+          _this.usersView = new UsersView({
+            collection: _this.users
+          });
+          _this.chatmenuView = new ChatMenuView({
+            collection: _this.users
+          });
+          _this.socket = io.connect('/');
+          _this.socket.emit("connect", localStorage['name']);
+          _this.socket.on("connect", function(id) {
+            return _this.users.each(function(u) {
+              if (u.get('id') === id) return u.set('online', true);
+            });
+          });
+          _this.socket.on("disconnect", function(id) {
+            return _this.users.each(function(u) {
+              if (u.get('id') === id) return u.set('online', false);
+            });
+          });
+          return _this.socket.on("pm", function(data) {
+            if (_this.channels[data.from] == null) _this.createChannel(data.from);
+            return _this.channels[data.from].addMessage(data);
+          });
+        });
+      });
+    };
+
     return ChatApp;
 
   })();
 
   $(function() {
     window.app = new ChatApp;
-    if (!localStorage['name']) {
-      localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000);
-    }
-    $('.user-box').text(localStorage['name']);
-    $('.user-box').prepend("<img src='/img/avatar/" + users[localStorage['name']].username + ".jpeg' class='avatar' />");
+    $('.login').submit(function(e) {
+      e.preventDefault();
+      return app.login('foobar', $("input[name='login']").val(), $("input[name='password']").val());
+    });
     return $('#change-name .save').click(function() {
       $('.user-box').text($('#change-name input').val());
       return localStorage['name'] = $('#change-name input').val();

@@ -43,3 +43,11 @@ io.sockets.on 'connection', (socket) ->
 
 server.listen(3000)
 console.log('http://localhost:3000/')
+
+xmlrpc = require('xmlrpc')
+client = xmlrpc.createClient({ host: 'localhost', port: 8069, path: '/xmlrpc/common' })
+client.methodCall 'login', ['foobar', 'admin', 'admin'], (error, userid) ->
+  client = xmlrpc.createClient({ host: 'localhost', port: 8069, path: '/xmlrpc/object' })
+  client.methodCall 'execute', ['foobar', userid, 'admin', 'hr.employee', 'search', []], (error, user_ids) ->
+    client.methodCall 'execute', ['foobar', userid, 'admin', 'hr.employee', 'read', user_ids, ['name', 'image']], (error, users) ->
+      console.log users

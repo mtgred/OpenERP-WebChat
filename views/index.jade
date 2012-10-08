@@ -1,81 +1,87 @@
 extends layout
 
 block body
-  div.navbar.navbar-fixed-top
-    div.navbar-inner
-      a.brand(href="#") OpenERP Chat
-      ul.nav
-        li.active
-          a(href="#") Lobby
-        li
-          a(href="#") Play
+  form.login
+    input(placeholder="Username", name="login", type="text", autofocus="autofocus")
+    input(placeholder="Password", name="password", type="password")
+    input.button.nice.small.red(type="submit", value="Login")
 
-      ul.nav.pull-right
-        li.dropdown
-          a.dropdown-toggle(href="#user-dropdown", data-toggle="dropdown")
-            span.user-box _
-            b.caret
-          ul.dropdown-menu
-            li
-              a(href="#name-change", data-toggle="modal", data-target="#change-name") Change name
-            li
-              a(href="#", data-toggle="modal") Log out
+  div.container
+    div.navbar.navbar-fixed-top
+      div.navbar-inner
+        a.brand(href="#") OpenERP Chat
+        ul.nav
+          li.active
+            a(href="#") Lobby
+          li
+            a(href="#") Play
 
-  div.content
-    div.chatapp
-    ul.chat-windows
+        ul.nav.pull-right
+          li.dropdown
+            a.dropdown-toggle(href="#user-dropdown", data-toggle="dropdown")
+              span.user-box _
+              b.caret
+            ul.dropdown-menu
+              li
+                a(href="#name-change", data-toggle="modal", data-target="#change-name") Change name
+              li
+                a(href="#", data-toggle="modal") Log out
 
-  div.modal.hide#change-name
-    div.modal-header
-      button.close(data-dismiss="modal") ×
-      h3 Change your name
-    div.modal-body
-      input(autofocus="autofocus", placeholder="What's your new name?")
-    div.modal-footer
-      button.btn.btn-primary.save(data-dismiss="modal") Save
-      button.btn(data-dismiss="modal") Cancel
+    div.content
+      div.chatapp
+      ul.chat-windows
 
-  script(type="text/javascript")
-    users = !{JSON.stringify(users)}
-    
-  script(type="text/template", id="chat-user")
-    img.avatar(src!="/img/avatar/<%= username %>.jpeg")
-    div.name <%= name %>
-    | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
+    div.modal.hide#change-name
+      div.modal-header
+        button.close(data-dismiss="modal") ×
+        h3 Change your name
+      div.modal-body
+        input(autofocus="autofocus", placeholder="What's your new name?")
+      div.modal-footer
+        button.btn.btn-primary.save(data-dismiss="modal") Save
+        button.btn(data-dismiss="modal") Cancel
 
-  script(type="text/template", id="user-list")
-    header
-      span.oe_e.search-icon &ocirc;
-      input.searchbox(placeholder="Search users...") 
-      span.oe_e.searchclear [
-    ul
+    script(type="text/javascript")
+      users = !{JSON.stringify(users)}
+      
+    script(type="text/template", id="chat-user")
+      img.avatar(src!="/img/avatar/<%= username %>.jpeg")
+      div.name <%= name %>
+      | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 
-  script(type="text/template", id="chat-menu")
-    a(href="#") <%= usercount %>
-      span.oe_e +
-
-  script(type="text/template", id="chat-message")
-    img.avatar(src!="/img/avatar/<% print(users[from].username) %>.jpeg")
-    span.time
-      | <% t = messages[0].time; %>
-      | <% minutes = t.getMinutes(); %>
-      | <% time = t.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
-      | <%= time %>
-    div.from.text-info <%= messages[0].from %>
-    ul
-      | <% _.each(messages, function(m) { %>
-      | <li><%= m.msg %></li>
-      | <% }); %>
-
-  script(type="text/template", id="chat")
-    div.chatview
+    script(type="text/template", id="user-list")
       header
-        <%= title %>
-        span.unreadMsg.label.label-important 
-        button.close ×
-      ul.messages.clearfix
-      footer
-        form
-          input.prompt(placeholder="Say something...")
+        span.oe_e.search-icon &ocirc;
+        input.searchbox(placeholder="Search users...") 
+        span.oe_e.searchclear [
+      ul
+
+    script(type="text/template", id="chat-menu")
+      a(href="#") <%= usercount %>
+        span.oe_e +
+
+    script(type="text/template", id="chat-message")
+      img.avatar(src!="/img/avatar/<% print(users[from].username) %>.jpeg")
+      span.time
+        | <% t = messages[0].time; %>
+        | <% minutes = t.getMinutes(); %>
+        | <% time = t.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
+        | <%= time %>
+      div.from.text-info <%= messages[0].from %>
+      ul
+        | <% _.each(messages, function(m) { %>
+        | <li><%= m.msg %></li>
+        | <% }); %>
+
+    script(type="text/template", id="chat")
+      div.chatview
+        header
+          <%= title %>
+          span.unreadMsg.label.label-important 
+          button.close ×
+        ul.messages.clearfix
+        footer
+          form
+            input.prompt(placeholder="Say something...")
 
 
