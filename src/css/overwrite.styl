@@ -112,7 +112,7 @@ body
   color: #666
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5)
   font-size: 13px
-  overflow: hidden
+  //overflow: hidden
 
 ul, ol
   padding: 0
@@ -178,17 +178,19 @@ input, textarea
   display: none
 
 .chatapp
-  width: 210px
+  width: 220px
   position: fixed
   top: 37px
   bottom: 0
-  //right: -220px
   right: 0
   background: background-color
   border-left: 1px solid border-color
   vertical-align: top
   .users
+    margin-top: 35px
+    padding: 3px 0 40px 0
     overflow: auto
+    height: 100%
     li
       padding: 2px 6px
       cursor: pointer
@@ -200,9 +202,12 @@ input, textarea
         width: 150px
         ellipsis()
   header
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
     vertical-gradient(#fcfcfc, #dedede)
     border-bottom: 1px solid border-color
-    margin-bottom: 2px
     padding: 5px
     .searchbox
       width: 100%

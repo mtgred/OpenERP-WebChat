@@ -100,9 +100,9 @@ class ChatMenuView extends Backbone.View
     $(@el).html(@template(usercount: (@collection.filter (u) -> u.get('online')).length))
   toggle: =>
     $(@el).toggleClass('active')
-    offset = if $(@el).hasClass('active') then 0 else -210
+    offset = if $(@el).hasClass('active') then 0 else -220
     $('.chatapp').animate(right: offset)
-    $('.chat-windows').animate(right: offset + 210)
+    $('.chat-windows').animate(right: offset + 220)
     return false
 
 class Channel
@@ -122,13 +122,15 @@ class ChatApp
     @socket.on "connected", (data) =>
       @user = data.user
       localStorage['uid'] = @user.id
+      $('.user-box').text(@user.name)
+      $('.user-box').prepend("<img src='/img/avatar/#{@user.id}.jpeg' class='avatar' />")
       $('.login').fadeOut()
       $('.container').fadeIn()
       @users.reset(u for u in data.users when u.id isnt @user.uid)
     if localStorage['uid']?
-      @socket.emit "logged", uid: localStorage['uid']
       $('.login').hide()
       $('.container').show()
+      @socket.emit "logged", uid: localStorage['uid']
     @socket.on "connect", (id) => @users.each (u) -> u.set('online', true) if u.get('id') is id
     @socket.on "disconnect", (id) => @users.each (u) -> u.set('online', false) if u.get('id') is id
     @socket.on "pm", (data) =>
@@ -142,29 +144,8 @@ class ChatApp
       @channels[dest] = new Channel(dest)
   login: (login, password) -> @socket.emit "login", { login: login, pwd: password }
 
-    #@instance.session.session_authenticate(db, login, password, false).then =>
-      #Users = new instance.web.Model('res.users')
-      #Users.query(['name', 'login', 'image']).all().then (users) =>
-        #@currentUser = _(users).find (u) -> u.login is login
-        #users = {id: u.id, name: u.name, image: u.image} for u in users when u.id isnt @currentUsers.id
-        #@users = new Backbone.Collection(users)
-        #@usersView = new UsersView(collection: @users)
-        #@chatmenuView = new ChatMenuView(collection: @users)
-        #@socket = io.connect('/')
-        #@socket.emit "connect", localStorage['name']
-        #@socket.on "connect", (id) =>
-          #@users.each (u) -> u.set('online', true) if u.get('id') is id
-        #@socket.on "disconnect", (id) =>
-          #@users.each (u) -> u.set('online', false) if u.get('id') is id
-        #@socket.on "pm", (data) =>
-          #@createChannel(data.from) unless @channels[data.from]?
-          #@channels[data.from].addMessage(data)
-
 $ ->
   window.app = new ChatApp
-  #localStorage['name'] = 'Guest ' + Math.floor(Math.random() * 1000) unless localStorage['name']
-  #$('.user-box').text(localStorage['name'])
-  #$('.user-box').prepend("<img src='/img/avatar/#{users[localStorage['name']].username}.jpeg' class='avatar' />")
   $('.login').submit (e) ->
     e.preventDefault()
     app.login $("input[name='login']").val(), $("input[name='password']").val()

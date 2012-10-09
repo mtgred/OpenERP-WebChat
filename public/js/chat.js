@@ -299,12 +299,12 @@
     ChatMenuView.prototype.toggle = function() {
       var offset;
       $(this.el).toggleClass('active');
-      offset = $(this.el).hasClass('active') ? 0 : -210;
+      offset = $(this.el).hasClass('active') ? 0 : -220;
       $('.chatapp').animate({
         right: offset
       });
       $('.chat-windows').animate({
-        right: offset + 210
+        right: offset + 220
       });
       return false;
     };
@@ -350,6 +350,8 @@
         var u;
         _this.user = data.user;
         localStorage['uid'] = _this.user.id;
+        $('.user-box').text(_this.user.name);
+        $('.user-box').prepend("<img src='/img/avatar/" + _this.user.id + ".jpeg' class='avatar' />");
         $('.login').fadeOut();
         $('.container').fadeIn();
         return _this.users.reset((function() {
@@ -364,11 +366,11 @@
         }).call(_this));
       });
       if (localStorage['uid'] != null) {
+        $('.login').hide();
+        $('.container').show();
         this.socket.emit("logged", {
           uid: localStorage['uid']
         });
-        $('.login').hide();
-        $('.container').show();
       }
       this.socket.on("connect", function(id) {
         return _this.users.each(function(u) {
