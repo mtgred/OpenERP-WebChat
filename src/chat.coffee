@@ -115,13 +115,25 @@ class Channel
 
 class ChatApp
   constructor: ->
+    @users = new Backbone.Collection()
+    @usersView = new UsersView(collection: @users)
     @socket = io.connect('/')
     @socket.on "error", (err) -> console.log err
-    @socket.on "connected", @connected
+    @socket.on "connected", (data) =>
+      @user = data.user
+      localStorage['uid'] = @user.id
+      $('.login').fadeOut()
+      $('.container').fadeIn()
+      @users.reset(u for u in data.users when u.id isnt @user.uid)
     if localStorage['uid']?
       @socket.emit "logged", uid: localStorage['uid']
       $('.login').hide()
       $('.container').show()
+    @socket.on "connect", (id) => @users.each (u) -> u.set('online', true) if u.get('id') is id
+    @socket.on "disconnect", (id) => @users.each (u) -> u.set('online', false) if u.get('id') is id
+    @socket.on "pm", (data) =>
+      @createChannel(data.from) unless @channels[data.from]?
+      @channels[data.from].addMessage(data)
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]?
@@ -129,21 +141,6 @@ class ChatApp
     else
       @channels[dest] = new Channel(dest)
   login: (login, password) -> @socket.emit "login", { login: login, pwd: password }
-  connected: (data) ->
-    @user = data.user
-    localStorage['uid'] = @user.id
-    $('.login').fadeOut()
-    $('.container').fadeIn()
-    @users = new Backbone.Collection(u for u in data.users when u.id isnt @user.uid)
-    @usersView = new UsersView(collection: @users)
-    @socket.on "connect", (id) =>
-      console.log id
-      @users.each (u) -> u.set('online', true) if u.get('id') is id
-    @socket.on "disconnect", (id) =>
-      @users.each (u) -> u.set('online', false) if u.get('id') is id
-    @socket.on "pm", (data) =>
-      @createChannel(data.from) unless @channels[data.from]?
-      @channels[data.from].addMessage(data)
 
     #@instance.session.session_authenticate(db, login, password, false).then =>
       #Users = new instance.web.Model('res.users')

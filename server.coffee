@@ -42,11 +42,10 @@ io.sockets.on 'connection', (socket) ->
   logged = (uid) ->
     users[uid].online = true
     socket.broadcast.emit('connect', uid)
-    data = { user: users[uid], users: {id: v.id, name: v.name, image: v.image, online: v.online} for k, v of users }
+    data = { user: users[uid], users: {id: v.id.toString(), name: v.name, image: v.image, online: v.online} for k, v of users }
     socket.emit('connected', data)
     socket.emit('pm', msg) for msg in users[uid].messages
     users[uid].messages = []
-    socket.broadcast.emit('connect', uid)
 
   socket.on 'disconnect', ->
     users[socket.name].online = false if socket.name?

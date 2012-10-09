@@ -336,11 +336,33 @@
   ChatApp = (function() {
 
     function ChatApp() {
-      this.createChannel = __bind(this.createChannel, this);      this.socket = io.connect('/');
+      this.createChannel = __bind(this.createChannel, this);
+      var _this = this;
+      this.users = new Backbone.Collection();
+      this.usersView = new UsersView({
+        collection: this.users
+      });
+      this.socket = io.connect('/');
       this.socket.on("error", function(err) {
         return console.log(err);
       });
-      this.socket.on("connected", this.connected);
+      this.socket.on("connected", function(data) {
+        var u;
+        _this.user = data.user;
+        localStorage['uid'] = _this.user.id;
+        $('.login').fadeOut();
+        $('.container').fadeIn();
+        return _this.users.reset((function() {
+          var _i, _len, _ref, _results;
+          _ref = data.users;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            u = _ref[_i];
+            if (u.id !== this.user.uid) _results.push(u);
+          }
+          return _results;
+        }).call(_this));
+      });
       if (localStorage['uid'] != null) {
         this.socket.emit("logged", {
           uid: localStorage['uid']
@@ -348,6 +370,20 @@
         $('.login').hide();
         $('.container').show();
       }
+      this.socket.on("connect", function(id) {
+        return _this.users.each(function(u) {
+          if (u.get('id') === id) return u.set('online', true);
+        });
+      });
+      this.socket.on("disconnect", function(id) {
+        return _this.users.each(function(u) {
+          if (u.get('id') === id) return u.set('online', false);
+        });
+      });
+      this.socket.on("pm", function(data) {
+        if (_this.channels[data.from] == null) _this.createChannel(data.from);
+        return _this.channels[data.from].addMessage(data);
+      });
     }
 
     ChatApp.prototype.channels = {};
@@ -364,43 +400,6 @@
       return this.socket.emit("login", {
         login: login,
         pwd: password
-      });
-    };
-
-    ChatApp.prototype.connected = function(data) {
-      var u,
-        _this = this;
-      this.user = data.user;
-      localStorage['uid'] = this.user.id;
-      $('.login').fadeOut();
-      $('.container').fadeIn();
-      this.users = new Backbone.Collection((function() {
-        var _i, _len, _ref, _results;
-        _ref = data.users;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          u = _ref[_i];
-          if (u.id !== this.user.uid) _results.push(u);
-        }
-        return _results;
-      }).call(this));
-      this.usersView = new UsersView({
-        collection: this.users
-      });
-      this.socket.on("connect", function(id) {
-        console.log(id);
-        return _this.users.each(function(u) {
-          if (u.get('id') === id) return u.set('online', true);
-        });
-      });
-      this.socket.on("disconnect", function(id) {
-        return _this.users.each(function(u) {
-          if (u.get('id') === id) return u.set('online', false);
-        });
-      });
-      return this.socket.on("pm", function(data) {
-        if (_this.channels[data.from] == null) _this.createChannel(data.from);
-        return _this.channels[data.from].addMessage(data);
       });
     };
 
