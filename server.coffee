@@ -40,6 +40,7 @@ app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP')
 
 io.sockets.on 'connection', (socket) ->
   logged = (uid) ->
+    socket.uid = uid
     users[uid].online = true
     socket.broadcast.emit('connect', uid)
     data = { user: users[uid], users: {id: v.id.toString(), name: v.name, image: v.image, online: v.online} for k, v of users }
@@ -48,8 +49,8 @@ io.sockets.on 'connection', (socket) ->
     users[uid].messages = []
 
   socket.on 'disconnect', ->
-    users[socket.name].online = false if socket.name?
-    socket.broadcast.emit('disconnect', socket.name) if socket.name?
+    users[socket.uid].online = false if socket.uid?
+    socket.broadcast.emit('disconnect', socket.uid) if socket.uid?
   socket.on 'logged', (data) -> logged(data.uid)
   socket.on 'login', (data) ->
     lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->
