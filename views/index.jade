@@ -41,11 +41,8 @@ block body
         button.btn.btn-primary.save(data-dismiss="modal") Save
         button.btn(data-dismiss="modal") Cancel
 
-    script(type="text/javascript")
-      users = !{JSON.stringify(users)}
-      
     script(type="text/template", id="chat-user")
-      img.avatar(src!="/img/avatar/<%= username %>.jpeg")
+      img.avatar(src!="/img/avatar/<%= image %>.jpeg")
       div.name <%= name %>
       | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 

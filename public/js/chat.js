@@ -336,12 +336,18 @@
   ChatApp = (function() {
 
     function ChatApp() {
-      this.login = __bind(this.login, this);
-      this.createChannel = __bind(this.createChannel, this);      this.instance = openerp.init([]);
-      openerp.web.corelib(this.instance);
-      openerp.web.coresetup(this.instance);
-      openerp.web.data(this.instance);
-      this.instance.session.session_bind('http://localhost:8069');
+      this.createChannel = __bind(this.createChannel, this);      this.socket = io.connect('/');
+      this.socket.on("error", function(err) {
+        return console.log(err);
+      });
+      this.socket.on("connected", this.connected);
+      if (localStorage['uid'] != null) {
+        this.socket.emit("logged", {
+          uid: localStorage['uid']
+        });
+        $('.login').hide();
+        $('.container').show();
+      }
     }
 
     ChatApp.prototype.channels = {};
@@ -354,50 +360,47 @@
       }
     };
 
-    ChatApp.prototype.login = function(db, login, password) {
-      var _this = this;
-      return this.instance.session.session_authenticate(db, login, password, false).then(function() {
-        var Users;
-        Users = new instance.web.Model('res.users');
-        return Users.query(['name', 'login', 'image']).all().then(function(users) {
-          var u, _i, _len;
-          _this.currentUser = _(users).find(function(u) {
-            return u.login === login;
-          });
-          for (_i = 0, _len = users.length; _i < _len; _i++) {
-            u = users[_i];
-            if (u.id !== _this.currentUsers.id) {
-              users = {
-                id: u.id,
-                name: u.name,
-                image: u.image
-              };
-            }
-          }
-          _this.users = new Backbone.Collection(users);
-          _this.usersView = new UsersView({
-            collection: _this.users
-          });
-          _this.chatmenuView = new ChatMenuView({
-            collection: _this.users
-          });
-          _this.socket = io.connect('/');
-          _this.socket.emit("connect", localStorage['name']);
-          _this.socket.on("connect", function(id) {
-            return _this.users.each(function(u) {
-              if (u.get('id') === id) return u.set('online', true);
-            });
-          });
-          _this.socket.on("disconnect", function(id) {
-            return _this.users.each(function(u) {
-              if (u.get('id') === id) return u.set('online', false);
-            });
-          });
-          return _this.socket.on("pm", function(data) {
-            if (_this.channels[data.from] == null) _this.createChannel(data.from);
-            return _this.channels[data.from].addMessage(data);
-          });
+    ChatApp.prototype.login = function(login, password) {
+      return this.socket.emit("login", {
+        login: login,
+        pwd: password
+      });
+    };
+
+    ChatApp.prototype.connected = function(data) {
+      var u,
+        _this = this;
+      this.user = data.user;
+      localStorage['uid'] = this.user.id;
+      $('.login').fadeOut();
+      $('.container').fadeIn();
+      this.users = new Backbone.Collection((function() {
+        var _i, _len, _ref, _results;
+        _ref = data.users;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          u = _ref[_i];
+          if (u.id !== this.user.uid) _results.push(u);
+        }
+        return _results;
+      }).call(this));
+      this.usersView = new UsersView({
+        collection: this.users
+      });
+      this.socket.on("connect", function(id) {
+        console.log(id);
+        return _this.users.each(function(u) {
+          if (u.get('id') === id) return u.set('online', true);
         });
+      });
+      this.socket.on("disconnect", function(id) {
+        return _this.users.each(function(u) {
+          if (u.get('id') === id) return u.set('online', false);
+        });
+      });
+      return this.socket.on("pm", function(data) {
+        if (_this.channels[data.from] == null) _this.createChannel(data.from);
+        return _this.channels[data.from].addMessage(data);
       });
     };
 
@@ -409,7 +412,7 @@
     window.app = new ChatApp;
     $('.login').submit(function(e) {
       e.preventDefault();
-      return app.login('foobar', $("input[name='login']").val(), $("input[name='password']").val());
+      return app.login($("input[name='login']").val(), $("input[name='password']").val());
     });
     return $('#change-name .save').click(function() {
       $('.user-box').text($('#change-name input').val());

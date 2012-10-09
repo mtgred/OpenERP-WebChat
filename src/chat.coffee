@@ -115,35 +115,53 @@ class Channel
 
 class ChatApp
   constructor: ->
-    @instance = openerp.init([])
-    openerp.web.corelib(@instance)
-    openerp.web.coresetup(@instance)
-    openerp.web.data(@instance)
-    @instance.session.session_bind('http://localhost:8069')
+    @socket = io.connect('/')
+    @socket.on "error", (err) -> console.log err
+    @socket.on "connected", @connected
+    if localStorage['uid']?
+      @socket.emit "logged", uid: localStorage['uid']
+      $('.login').hide()
+      $('.container').show()
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]?
       @channels[dest].chatView.show()
     else
       @channels[dest] = new Channel(dest)
-  login: (db, login, password) =>
-    @instance.session.session_authenticate(db, login, password, false).then =>
-      Users = new instance.web.Model('res.users')
-      Users.query(['name', 'login', 'image']).all().then (users) =>
-        @currentUser = _(users).find (u) -> u.login is login
-        users = {id: u.id, name: u.name, image: u.image} for u in users when u.id isnt @currentUsers.id
-        @users = new Backbone.Collection(users)
-        @usersView = new UsersView(collection: @users)
-        @chatmenuView = new ChatMenuView(collection: @users)
-        @socket = io.connect('/')
-        @socket.emit "connect", localStorage['name']
-        @socket.on "connect", (id) =>
-          @users.each (u) -> u.set('online', true) if u.get('id') is id
-        @socket.on "disconnect", (id) =>
-          @users.each (u) -> u.set('online', false) if u.get('id') is id
-        @socket.on "pm", (data) =>
-          @createChannel(data.from) unless @channels[data.from]?
-          @channels[data.from].addMessage(data)
+  login: (login, password) -> @socket.emit "login", { login: login, pwd: password }
+  connected: (data) ->
+    @user = data.user
+    localStorage['uid'] = @user.id
+    $('.login').fadeOut()
+    $('.container').fadeIn()
+    @users = new Backbone.Collection(u for u in data.users when u.id isnt @user.uid)
+    @usersView = new UsersView(collection: @users)
+    @socket.on "connect", (id) =>
+      console.log id
+      @users.each (u) -> u.set('online', true) if u.get('id') is id
+    @socket.on "disconnect", (id) =>
+      @users.each (u) -> u.set('online', false) if u.get('id') is id
+    @socket.on "pm", (data) =>
+      @createChannel(data.from) unless @channels[data.from]?
+      @channels[data.from].addMessage(data)
+
+    #@instance.session.session_authenticate(db, login, password, false).then =>
+      #Users = new instance.web.Model('res.users')
+      #Users.query(['name', 'login', 'image']).all().then (users) =>
+        #@currentUser = _(users).find (u) -> u.login is login
+        #users = {id: u.id, name: u.name, image: u.image} for u in users when u.id isnt @currentUsers.id
+        #@users = new Backbone.Collection(users)
+        #@usersView = new UsersView(collection: @users)
+        #@chatmenuView = new ChatMenuView(collection: @users)
+        #@socket = io.connect('/')
+        #@socket.emit "connect", localStorage['name']
+        #@socket.on "connect", (id) =>
+          #@users.each (u) -> u.set('online', true) if u.get('id') is id
+        #@socket.on "disconnect", (id) =>
+          #@users.each (u) -> u.set('online', false) if u.get('id') is id
+        #@socket.on "pm", (data) =>
+          #@createChannel(data.from) unless @channels[data.from]?
+          #@channels[data.from].addMessage(data)
 
 $ ->
   window.app = new ChatApp
@@ -152,7 +170,7 @@ $ ->
   #$('.user-box').prepend("<img src='/img/avatar/#{users[localStorage['name']].username}.jpeg' class='avatar' />")
   $('.login').submit (e) ->
     e.preventDefault()
-    app.login 'foobar', $("input[name='login']").val(), $("input[name='password']").val()
+    app.login $("input[name='login']").val(), $("input[name='password']").val()
 
 
   $('#change-name .save').click ->

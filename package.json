@@ -7,7 +7,8 @@
     "jade": ">= 0.0.1",
     "socket.io": "~0.9.6",
     "stylus": "~0.26.0",
-    "xmlrpc": "~1.0.2"
+    "xmlrpc": "~1.0.2",
+    "gm": "~1.5.1"
   },
   "scripts": {
     "start": "coffee server.coffee"

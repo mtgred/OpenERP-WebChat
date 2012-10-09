@@ -3,6 +3,9 @@ express = require('express')
 app = express()
 server = require('http').createServer(app)
 io = require('socket.io').listen(server)
+xmlrpc = require('xmlrpc')
+fs = require('fs')
+gm = require('gm')
 
 app.configure ->
   app.use express.bodyParser()
@@ -13,27 +16,49 @@ app.configure ->
 app.configure 'development', -> app.use express.errorHandler({dumpExceptions: true, showStack: true})
 app.configure 'production', -> app.use express.errorHandler()
 
-users =
-  'Fabien Pinckaers': {name: 'Fabien Pinckaers', username: 'fp', online: false, messages: []}
-  'Antony Lesuisse': {name: 'Antony Lesuisse', username: 'al', online: false, messages: []}
-  'Minh Tran': {name: 'Minh Tran', username: 'mit', online: false, messages: []}
-  'Frederic van der Essen': {name: 'Frederic van der Essen', username: 'fva', online: false, messages: []}
-  'Julien Thewys': {name: 'Julien Thewys', username: 'jth', online: false, messages: []}
-  'Nicoleta Gherlea': {name: 'Nicoleta Gherlea', username: 'ngh', online: false, messages: []}
+db = 'foobar'
+uid = 1
+pwd = 'admin'
+host = 'localhost'
+domain = []
 
-app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP', users: users)
+port = 8069
+lc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/common' })
+fc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/object' })
+users = {}
+fc.methodCall 'execute', [db,uid,pwd,'hr.employee','search',domain], (err, uids) ->
+  fc.methodCall 'execute', [db,uid,pwd,'hr.employee','read',uids, ['name','user_id','photo']], (err, empls) ->
+    for e in empls
+      if e.user_id
+        users[e.user_id[0]] = { name: e.name, id: e.user_id[0], image: 'avatar', online: false, messages: [] }
+        if e.photo
+          users[e.user_id[0]].image = e.user_id[0]
+          fs.writeFile("public/img/avatar/#{e.user_id[0]}.jpeg", new Buffer(e.photo, "base64"), "binary", (err) -> console.log err if err)
+    console.log 'Ready'
+
+app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP')
 
 io.sockets.on 'connection', (socket) ->
-  socket.on 'connect', (name) ->
-    socket.name = name
-    users[name].online = true
-    users[name].sid = socket.id
-    socket.broadcast.emit('connect', name)
-    io.sockets.socket(socket.id).emit('pm', msg) for msg in users[name].messages
-    users[name].messages = []
+  logged = (uid) ->
+    users[uid].online = true
+    socket.broadcast.emit('connect', uid)
+    data = { user: users[uid], users: {id: v.id, name: v.name, image: v.image, online: v.online} for k, v of users }
+    socket.emit('connected', data)
+    socket.emit('pm', msg) for msg in users[uid].messages
+    users[uid].messages = []
+    socket.broadcast.emit('connect', uid)
+
   socket.on 'disconnect', ->
     users[socket.name].online = false if socket.name?
     socket.broadcast.emit('disconnect', socket.name) if socket.name?
+  socket.on 'logged', (data) -> logged(data.uid)
+  socket.on 'login', (data) ->
+    lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->
+      if uid
+        logged(uid)
+      else
+        socket.emit 'error', err
+
   socket.on 'pm', (data) ->
     d = JSON.parse(data)
     if users[d.to].online
@@ -42,12 +67,4 @@ io.sockets.on 'connection', (socket) ->
       users[d.to].messages.push(d)
 
 server.listen(3000)
-console.log('http://localhost:3000/')
-
-xmlrpc = require('xmlrpc')
-client = xmlrpc.createClient({ host: 'localhost', port: 8069, path: '/xmlrpc/common' })
-client.methodCall 'login', ['foobar', 'admin', 'admin'], (error, userid) ->
-  client = xmlrpc.createClient({ host: 'localhost', port: 8069, path: '/xmlrpc/object' })
-  client.methodCall 'execute', ['foobar', userid, 'admin', 'hr.employee', 'search', []], (error, user_ids) ->
-    client.methodCall 'execute', ['foobar', userid, 'admin', 'hr.employee', 'read', user_ids, ['name', 'image']], (error, users) ->
-      console.log users
+console.log('http://localhost:3000')
