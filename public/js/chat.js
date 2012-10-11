@@ -80,7 +80,7 @@
       var _this = this;
       $(this.el).find('> ul').empty();
       return this.collection.each(function(user) {
-        return _this.addUser(user);
+        if (user.get('id') !== app.user.id) return _this.addUser(user);
       });
     };
 
@@ -289,10 +289,12 @@
     };
 
     ChatMenuView.prototype.render = function() {
+      var count;
+      count = (this.collection.filter(function(u) {
+        return u.get('online') && u.get('id') !== app.user.id;
+      })).length;
       return $(this.el).html(this.template({
-        usercount: (this.collection.filter(function(u) {
-          return u.get('online');
-        })).length
+        usercount: count
       }));
     };
 
@@ -336,10 +338,15 @@
   ChatApp = (function() {
 
     function ChatApp() {
+      this.getUser = __bind(this.getUser, this);
       this.createChannel = __bind(this.createChannel, this);
-      var _this = this;
+      var chatmenuView, usersView,
+        _this = this;
       this.users = new Backbone.Collection();
-      this.usersView = new UsersView({
+      usersView = new UsersView({
+        collection: this.users
+      });
+      chatmenuView = new ChatMenuView({
         collection: this.users
       });
       this.socket = io.connect('/');
@@ -360,10 +367,10 @@
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             u = _ref[_i];
-            if (u.id !== this.user.uid) _results.push(u);
+            _results.push(u);
           }
           return _results;
-        }).call(_this));
+        })());
       });
       if (localStorage['uid'] != null) {
         $('.container').fadeIn();
@@ -384,7 +391,6 @@
         });
       });
       this.socket.on("pm", function(data) {
-        console.log(data);
         if (_this.channels[data.from] == null) _this.createChannel(data.from);
         return _this.channels[data.from].addMessage(data);
       });
@@ -408,7 +414,8 @@
     };
 
     ChatApp.prototype.getUser = function(uid) {
-      return this.users.find(function(u) {
+      var user;
+      return user = this.users.find(function(u) {
         return u.get('id') === uid;
       });
     };

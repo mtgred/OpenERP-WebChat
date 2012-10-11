@@ -29,7 +29,7 @@ fc.methodCall 'execute', [db,uid,pwd,'hr.employee','search',domain], (err, uids)
   fc.methodCall 'execute', [db,uid,pwd,'hr.employee','read',uids, ['name','user_id','photo']], (err, empls) ->
     for e in empls
       if e.user_id
-        users[e.user_id[0]] = { name: e.name, id: e.user_id[0], image: 'avatar', online: false, messages: [] }
+        users[e.user_id[0]] = { name: e.name, id: e.user_id[0].toString(), image: 'avatar', online: false, messages: [] }
         if e.photo
           users[e.user_id[0]].image = e.user_id[0]
           fs.writeFile("public/img/avatar/#{e.user_id[0]}.jpeg", new Buffer(e.photo, "base64"), "binary", (err) -> console.log err if err)
@@ -43,7 +43,7 @@ io.sockets.on 'connection', (socket) ->
     users[uid].online = true
     users[uid].sid = socket.id
     socket.broadcast.emit('connect', uid)
-    data = { user: users[uid], users: {id: v.id.toString(), name: v.name, image: v.image, online: v.online} for k, v of users }
+    data = { user: users[uid], users: {id: v.id, name: v.name, image: v.image, online: v.online} for k, v of users }
     socket.emit('connected', data)
     socket.emit('pm', msg) for msg in users[uid].messages
     users[uid].messages = []
@@ -56,8 +56,6 @@ io.sockets.on 'connection', (socket) ->
     lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->
       if uid then logged(uid) else socket.emit 'error', 'Wrong login or password'
   socket.on 'pm', (data) ->
-    console.log data
-    console.log users
     d = JSON.parse(data)
     if users[d.to].online
       io.sockets.socket(users[d.to].sid).emit('pm', d)

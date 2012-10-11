@@ -22,7 +22,7 @@ class UsersView extends Backbone.View
   addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
   render: =>
     $(@el).find('> ul').empty()
-    @collection.each (user) => @addUser(user)
+    @collection.each (user) => @addUser(user) if user.get('id') isnt app.user.id
   filter: =>
     s = $('.searchbox').val().toLowerCase()
     if s
@@ -97,7 +97,8 @@ class ChatMenuView extends Backbone.View
     @render()
   events: 'click': 'toggle'
   render: =>
-    $(@el).html(@template(usercount: (@collection.filter (u) -> u.get('online')).length))
+    count = (@collection.filter (u) -> u.get('online') and u.get('id') isnt app.user.id).length
+    $(@el).html(@template(usercount: count))
   toggle: =>
     $(@el).toggleClass('active')
     offset = if $(@el).hasClass('active') then 0 else -220
@@ -116,7 +117,8 @@ class Channel
 class ChatApp
   constructor: ->
     @users = new Backbone.Collection()
-    @usersView = new UsersView(collection: @users)
+    usersView = new UsersView(collection: @users)
+    chatmenuView = new ChatMenuView(collection: @users)
     @socket = io.connect('/')
     @socket.on "error", (err) -> console.log err
     @socket.on "connected", (data) =>
@@ -126,7 +128,7 @@ class ChatApp
       $('.user-box').prepend("<img src='/img/avatar/#{@user.id}.jpeg' class='avatar' />")
       $('.login').fadeOut()
       $('.container').fadeIn()
-      @users.reset(u for u in data.users when u.id isnt @user.uid)
+      @users.reset(u for u in data.users)
     if localStorage['uid']?
       $('.container').fadeIn()
       @socket.emit "logged", uid: localStorage['uid']
@@ -135,7 +137,6 @@ class ChatApp
     @socket.on "connect", (id) => @users.each (u) -> u.set('online', true) if u.get('id') is id
     @socket.on "disconnect", (id) => @users.each (u) -> u.set('online', false) if u.get('id') is id
     @socket.on "pm", (data) =>
-      console.log data
       @createChannel(data.from) unless @channels[data.from]?
       @channels[data.from].addMessage(data)
   channels: {}
@@ -145,7 +146,7 @@ class ChatApp
     else
       @channels[dest] = new Channel(dest)
   login: (login, password) -> @socket.emit "login", { login: login, pwd: password }
-  getUser: (uid) -> @users.find (u) -> u.get('id') is uid
+  getUser: (uid) => user = @users.find (u) -> u.get('id') is uid
 
 $ ->
   window.app = new ChatApp
