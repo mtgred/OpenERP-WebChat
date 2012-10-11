@@ -37,9 +37,9 @@
     UserView.prototype.render = function() {
       $(this.el).detach().html(this.template(this.model.toJSON()));
       if (this.model.get('online')) {
-        return $(app.usersView.el).prepend(this.el);
+        return $(app.usersView.el).find('> ul').prepend(this.el);
       } else {
-        return $(app.usersView.el).append(this.el);
+        return $(app.usersView.el).find('> ul').append(this.el);
       }
     };
 

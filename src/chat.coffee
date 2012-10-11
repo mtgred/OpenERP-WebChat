@@ -8,7 +8,10 @@ class UserView extends Backbone.View
   events: 'click': -> window.app.createChannel(@model.get('id'))
   render: ->
     $(@el).detach().html(@template @model.toJSON())
-    if @model.get('online') then $(app.usersView.el).prepend(@el) else $(app.usersView.el).append(@el)
+    if @model.get('online')
+      $(app.usersView.el).find('> ul').prepend(@el)
+    else
+      $(app.usersView.el).find('> ul').append(@el)
 
 class UsersView extends Backbone.View
   className: 'users'

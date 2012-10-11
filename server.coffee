@@ -21,6 +21,13 @@ pwd = 'admin'
 host = 'localhost'
 domain = []
 
+db = 'openerp'
+uid = 138
+pwd = 'h4WeH55k'
+host = 'openerp.my.openerp.com'
+domain = [['company_id','=',1]]
+
+
 port = 8069
 lc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/common' })
 fc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/object' })
