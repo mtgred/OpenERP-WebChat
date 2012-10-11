@@ -6,7 +6,9 @@ class UserView extends Backbone.View
     @model.bind 'remove', => $(@el).remove()
     @model.bind 'change', => @render()
   events: 'click': -> window.app.createChannel(@model.get('id'))
-  render: -> $(@el).html(@template @model.toJSON())
+  render: ->
+    $(@el).detach().html(@template @model.toJSON())
+    if @model.get('online') then $(app.usersView.el).prepend(@el) else $(app.usersView.el).append(@el)
 
 class UsersView extends Backbone.View
   className: 'users'
@@ -19,10 +21,10 @@ class UsersView extends Backbone.View
   events:
     'keyup .searchbox': 'filter'
     'click .searchclear': 'searchclear'
-  addUser: (user) => $(@el).find('> ul').append (new UserView(model: user)).render()
+  addUser: (user) => (new UserView(model: user)).render()
   render: =>
     $(@el).find('> ul').empty()
-    @collection.each (user) => @addUser(user) if user.get('id') isnt app.user.id
+    @collection.each (u) => @addUser(u) if u.get('id') isnt app.user.id
   filter: =>
     s = $('.searchbox').val().toLowerCase()
     if s
@@ -117,8 +119,8 @@ class Channel
 class ChatApp
   constructor: ->
     @users = new Backbone.Collection()
-    usersView = new UsersView(collection: @users)
-    chatmenuView = new ChatMenuView(collection: @users)
+    @usersView = new UsersView(collection: @users)
+    @chatmenuView = new ChatMenuView(collection: @users)
     @socket = io.connect('/')
     @socket.on "error", (err) -> console.log err
     @socket.on "connected", (data) =>

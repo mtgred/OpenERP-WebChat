@@ -35,7 +35,12 @@
     };
 
     UserView.prototype.render = function() {
-      return $(this.el).html(this.template(this.model.toJSON()));
+      $(this.el).detach().html(this.template(this.model.toJSON()));
+      if (this.model.get('online')) {
+        return $(app.usersView.el).prepend(this.el);
+      } else {
+        return $(app.usersView.el).append(this.el);
+      }
     };
 
     return UserView;
@@ -71,16 +76,16 @@
     };
 
     UsersView.prototype.addUser = function(user) {
-      return $(this.el).find('> ul').append((new UserView({
+      return (new UserView({
         model: user
-      })).render());
+      })).render();
     };
 
     UsersView.prototype.render = function() {
       var _this = this;
       $(this.el).find('> ul').empty();
-      return this.collection.each(function(user) {
-        if (user.get('id') !== app.user.id) return _this.addUser(user);
+      return this.collection.each(function(u) {
+        if (u.get('id') !== app.user.id) return _this.addUser(u);
       });
     };
 
@@ -340,13 +345,12 @@
     function ChatApp() {
       this.getUser = __bind(this.getUser, this);
       this.createChannel = __bind(this.createChannel, this);
-      var chatmenuView, usersView,
-        _this = this;
+      var _this = this;
       this.users = new Backbone.Collection();
-      usersView = new UsersView({
+      this.usersView = new UsersView({
         collection: this.users
       });
-      chatmenuView = new ChatMenuView({
+      this.chatmenuView = new ChatMenuView({
         collection: this.users
       });
       this.socket = io.connect('/');
