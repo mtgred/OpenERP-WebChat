@@ -30,7 +30,7 @@
 
     UserView.prototype.events = {
       'click': function() {
-        return window.app.createChannel(this.model.get('name'));
+        return window.app.createChannel(this.model.get('id'));
       }
     };
 
@@ -188,7 +188,7 @@
       this.collection.bind('add', this.addMessage);
       this.collection.bind('all', this.show);
       $('.chat-windows').append($(this.el).html(this.template({
-        title: this.options.dest
+        title: app.getUser(this.options.dest).get('name')
       })));
       return $('.prompt').focus();
     };
@@ -216,7 +216,7 @@
       input = $(this.el).find('.prompt').val();
       if (input) {
         m = {
-          from: localStorage['name'],
+          from: localStorage['uid'],
           to: this.options.dest,
           msg: input,
           time: new Date()
@@ -366,11 +366,12 @@
         }).call(_this));
       });
       if (localStorage['uid'] != null) {
-        $('.login').hide();
-        $('.container').show();
+        $('.container').fadeIn();
         this.socket.emit("logged", {
           uid: localStorage['uid']
         });
+      } else {
+        $('.login').fadeIn();
       }
       this.socket.on("connect", function(id) {
         return _this.users.each(function(u) {
@@ -383,6 +384,7 @@
         });
       });
       this.socket.on("pm", function(data) {
+        console.log(data);
         if (_this.channels[data.from] == null) _this.createChannel(data.from);
         return _this.channels[data.from].addMessage(data);
       });
@@ -405,6 +407,12 @@
       });
     };
 
+    ChatApp.prototype.getUser = function(uid) {
+      return this.users.find(function(u) {
+        return u.get('id') === uid;
+      });
+    };
+
     return ChatApp;
 
   })();
@@ -415,9 +423,8 @@
       e.preventDefault();
       return app.login($("input[name='login']").val(), $("input[name='password']").val());
     });
-    return $('#change-name .save').click(function() {
-      $('.user-box').text($('#change-name input').val());
-      return localStorage['name'] = $('#change-name input').val();
+    return $('#logout').click(function(e) {
+      return delete localStorage['uid'];
     });
   });
 

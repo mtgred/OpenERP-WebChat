@@ -5,7 +5,7 @@ class UserView extends Backbone.View
   initialize: ->
     @model.bind 'remove', => $(@el).remove()
     @model.bind 'change', => @render()
-  events: 'click': -> window.app.createChannel(@model.get('name'))
+  events: 'click': -> window.app.createChannel(@model.get('id'))
   render: -> $(@el).html(@template @model.toJSON())
 
 class UsersView extends Backbone.View
@@ -59,7 +59,7 @@ class ChatView extends Backbone.View
   initialize: ->
     @collection.bind('add', @addMessage)
     @collection.bind('all', @show)
-    $('.chat-windows').append($(@el).html(@template(title: @options.dest)))
+    $('.chat-windows').append($(@el).html(@template(title: app.getUser(@options.dest).get('name'))))
     $('.prompt').focus()
   events:
     'submit form': 'sendMessage'
@@ -71,7 +71,7 @@ class ChatView extends Backbone.View
     e.preventDefault()
     input = $(@el).find('.prompt').val()
     if input
-      m = {from: localStorage['name'], to: @options.dest, msg: input, time: new Date()}
+      m = {from: localStorage['uid'], to: @options.dest, msg: input, time: new Date()}
       app.socket.emit 'pm', JSON.stringify(m)
       @collection.add(m)
     $(@el).find('.prompt').val('')
@@ -128,12 +128,14 @@ class ChatApp
       $('.container').fadeIn()
       @users.reset(u for u in data.users when u.id isnt @user.uid)
     if localStorage['uid']?
-      $('.login').hide()
-      $('.container').show()
+      $('.container').fadeIn()
       @socket.emit "logged", uid: localStorage['uid']
+    else
+      $('.login').fadeIn()
     @socket.on "connect", (id) => @users.each (u) -> u.set('online', true) if u.get('id') is id
     @socket.on "disconnect", (id) => @users.each (u) -> u.set('online', false) if u.get('id') is id
     @socket.on "pm", (data) =>
+      console.log data
       @createChannel(data.from) unless @channels[data.from]?
       @channels[data.from].addMessage(data)
   channels: {}
@@ -143,14 +145,12 @@ class ChatApp
     else
       @channels[dest] = new Channel(dest)
   login: (login, password) -> @socket.emit "login", { login: login, pwd: password }
+  getUser: (uid) -> @users.find (u) -> u.get('id') is uid
 
 $ ->
   window.app = new ChatApp
   $('.login').submit (e) ->
     e.preventDefault()
     app.login $("input[name='login']").val(), $("input[name='password']").val()
+  $('#logout').click (e) -> delete localStorage['uid']
 
-
-  $('#change-name .save').click ->
-    $('.user-box').text($('#change-name input').val())
-    localStorage['name'] = $('#change-name input').val()

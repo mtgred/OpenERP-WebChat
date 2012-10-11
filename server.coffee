@@ -42,6 +42,7 @@ io.sockets.on 'connection', (socket) ->
   logged = (uid) ->
     socket.uid = uid
     users[uid].online = true
+    users[uid].sid = socket.id
     socket.broadcast.emit('connect', uid)
     data = { user: users[uid], users: {id: v.id.toString(), name: v.name, image: v.image, online: v.online} for k, v of users }
     socket.emit('connected', data)
@@ -54,12 +55,10 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'logged', (data) -> logged(data.uid)
   socket.on 'login', (data) ->
     lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->
-      if uid
-        logged(uid)
-      else
-        socket.emit 'error', err
-
+      if uid then logged(uid) else socket.emit 'error', 'Wrong login or password'
   socket.on 'pm', (data) ->
+    console.log data
+    console.log users
     d = JSON.parse(data)
     if users[d.to].online
       io.sockets.socket(users[d.to].sid).emit('pm', d)

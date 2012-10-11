@@ -23,23 +23,11 @@ block body
               b.caret
             ul.dropdown-menu
               li
-                a(href="#name-change", data-toggle="modal", data-target="#change-name") Change name
-              li
-                a(href="#", data-toggle="modal") Log out
+                a(href="#logout", data-toggle="modal") Log out
 
     div.content
       div.chatapp
       ul.chat-windows
-
-    div.modal.hide#change-name
-      div.modal-header
-        button.close(data-dismiss="modal") ×
-        h3 Change your name
-      div.modal-body
-        input(autofocus="autofocus", placeholder="What's your new name?")
-      div.modal-footer
-        button.btn.btn-primary.save(data-dismiss="modal") Save
-        button.btn(data-dismiss="modal") Cancel
 
     script(type="text/template", id="chat-user")
       img.avatar(src!="/img/avatar/<%= image %>.jpeg")
@@ -58,13 +46,13 @@ block body
         span.oe_e +
 
     script(type="text/template", id="chat-message")
-      img.avatar(src!="/img/avatar/<% print(users[from].username) %>.jpeg")
+      img.avatar(src!="/img/avatar/<% print(app.getUser(from).get('image')) %>.jpeg")
       span.time
         | <% t = messages[0].time; %>
         | <% minutes = t.getMinutes(); %>
         | <% time = t.getHours() + ':' + (minutes < 10 ? "0" : "") + minutes; %>
         | <%= time %>
-      div.from.text-info <%= messages[0].from %>
+      div.from.text-info <% print(app.getUser(messages[0].from).get('name')) %>
       ul
         | <% _.each(messages, function(m) { %>
         | <li><%= m.msg %></li>
@@ -80,5 +68,3 @@ block body
         footer
           form
             input.prompt(placeholder="Say something...")
-
-
