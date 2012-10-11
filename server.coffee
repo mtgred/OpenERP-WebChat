@@ -5,7 +5,6 @@ server = require('http').createServer(app)
 io = require('socket.io').listen(server)
 xmlrpc = require('xmlrpc')
 fs = require('fs')
-gm = require('gm')
 
 app.configure ->
   app.use express.bodyParser()
