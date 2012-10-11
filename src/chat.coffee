@@ -152,5 +152,5 @@ $ ->
   $('.login').submit (e) ->
     e.preventDefault()
     app.login $("input[name='login']").val(), $("input[name='password']").val()
-  $('#logout').click (e) -> delete localStorage['uid']
+  $('#logout').click (e) -> delete localStorage['uid']; location.reload()
 

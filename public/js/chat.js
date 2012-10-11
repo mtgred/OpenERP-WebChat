@@ -424,7 +424,8 @@
       return app.login($("input[name='login']").val(), $("input[name='password']").val());
     });
     return $('#logout').click(function(e) {
-      return delete localStorage['uid'];
+      delete localStorage['uid'];
+      return location.reload();
     });
   });
 
