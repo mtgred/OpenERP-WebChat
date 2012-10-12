@@ -61,7 +61,7 @@ io.sockets.on 'connection', (socket) ->
   socket.on 'logged', (data) -> logged(data.uid)
   socket.on 'login', (data) ->
     lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->
-      if uid then logged(uid) else socket.emit 'error', 'Wrong login or password'
+      if uid then logged(uid.toString()) else socket.emit 'error', 'Wrong login or password'
   socket.on 'pm', (data) ->
     d = JSON.parse(data)
     if users[d.to].online
