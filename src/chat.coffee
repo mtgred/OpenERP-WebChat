@@ -1,6 +1,6 @@
 class UserView extends Backbone.View
   tagName: 'li'
-  className: 'user'
+  className: 'clearfix'
   template: _.template $('#chat-user').html()
   initialize: ->
     @model.bind 'remove', => $(@el).remove()
@@ -12,6 +12,7 @@ class UserView extends Backbone.View
       $(app.usersView.el).find('> ul').prepend(@el)
     else
       $(app.usersView.el).find('> ul').append(@el)
+    $('.avatar').load -> $(@).addClass('avatar-wide') if @width > @height
 
 class UsersView extends Backbone.View
   className: 'users'
@@ -24,7 +25,9 @@ class UsersView extends Backbone.View
   events:
     'keyup .searchbox': 'filter'
     'click .searchclear': 'searchclear'
-  addUser: (user) => (new UserView(model: user)).render() if user.get('id') isnt app.user.id
+  addUser: (user) =>
+    (new UserView(model: user)).render() if user.get('id') isnt app.user.id
+    $('.avatar').load -> $(@).addClass('avatar-wide') if @width > @height
   render: =>
     $(@el).find('> ul').empty()
     @collection.each (u) => @addUser(u)
@@ -54,8 +57,8 @@ class MessageView extends Backbone.View
   tagName: 'li'
   className: 'msg'
   template: _.template $('#chat-message').html()
-  initialize: -> @model.bind('change', @render)
-  render: => $(@el).html(@template @model.toJSON())
+  initialize: -> @model.bind('change', @render, @)
+  render: -> $(@el).html(@template @model.toJSON())
 
 class ChatView extends Backbone.View
   tagName: 'li'
@@ -130,7 +133,9 @@ class ChatApp
       @user = data.user
       localStorage['uid'] = @user.id
       $('.user-box').text(@user.name)
-      $('.user-box').prepend("<img src='/img/avatar/#{@user.id}.jpeg' class='avatar' />")
+      $('.user-box').parent().prepend("<div class='clip'><img src='/img/avatar/#{@user.id}.jpeg' class='avatar' /></div>")
+
+      $('.avatar').load -> $(@).addClass('avatar-wide') if @width > @height
       $('.login').fadeOut()
       $('.container').fadeIn()
       @users.reset(u for u in data.users)

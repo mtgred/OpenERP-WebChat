@@ -60,12 +60,10 @@
   top: 4px;
 }
 .navbar .nav .user-box {
-  padding-left: 30px;
+  float: left;
 }
-.navbar .nav .user-box .avatar {
-  position: absolute;
-  top: 4px;
-  left: 8px;
+.navbar .nav .clip {
+  top: -3px;
 }
 .navbar-inner {
   min-height: 36px;
@@ -107,16 +105,26 @@ textarea {
   -webkit-box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
   box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
 }
-.avatar {
-  height: 26px;
+.clip {
+  position: relative;
+  float: left;
   width: 26px;
-  -moz-border-radius: 3px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-  -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  height: 26px;
   margin-right: 4px;
+  -moz-box-shadow: 0 0 2px 1px rgba(0,0,0,0.25);
+  -webkit-box-shadow: 0 0 2px 1px rgba(0,0,0,0.25);
+  box-shadow: 0 0 2px 1px rgba(0,0,0,0.25);
+}
+.clip .avatar {
+  position: absolute;
+  width: 26px;
+  height: auto;
+  clip: rect(0, 26px, 26px, 0);
+}
+.clip .avatar-wide {
+  height: 26px;
+  width: auto;
+  clip: rect(0px, 26px, 26px, 0);
 }
 .login {
   display: none;
@@ -191,8 +199,9 @@ textarea {
   background: lightGrey;
 }
 .chatapp .users li .name {
-  display: inline-block;
+  float: left;
   width: 150px;
+  line-height: 26px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;

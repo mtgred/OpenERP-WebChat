@@ -14,7 +14,7 @@
 
     UserView.prototype.tagName = 'li';
 
-    UserView.prototype.className = 'user';
+    UserView.prototype.className = 'clearfix';
 
     UserView.prototype.template = _.template($('#chat-user').html());
 
@@ -37,10 +37,13 @@
     UserView.prototype.render = function() {
       $(this.el).detach().html(this.template(this.model.toJSON()));
       if (this.model.get('online')) {
-        return $(app.usersView.el).find('> ul').prepend(this.el);
+        $(app.usersView.el).find('> ul').prepend(this.el);
       } else {
-        return $(app.usersView.el).find('> ul').append(this.el);
+        $(app.usersView.el).find('> ul').append(this.el);
       }
+      return $('.avatar').load(function() {
+        if (this.width > this.height) return $(this).addClass('avatar-wide');
+      });
     };
 
     return UserView;
@@ -77,10 +80,13 @@
 
     UsersView.prototype.addUser = function(user) {
       if (user.get('id') !== app.user.id) {
-        return (new UserView({
+        (new UserView({
           model: user
         })).render();
       }
+      return $('.avatar').load(function() {
+        if (this.width > this.height) return $(this).addClass('avatar-wide');
+      });
     };
 
     UsersView.prototype.render = function() {
@@ -151,7 +157,6 @@
     __extends(MessageView, _super);
 
     function MessageView() {
-      this.render = __bind(this.render, this);
       MessageView.__super__.constructor.apply(this, arguments);
     }
 
@@ -162,7 +167,7 @@
     MessageView.prototype.template = _.template($('#chat-message').html());
 
     MessageView.prototype.initialize = function() {
-      return this.model.bind('change', this.render);
+      return this.model.bind('change', this.render, this);
     };
 
     MessageView.prototype.render = function() {
@@ -364,7 +369,10 @@
         _this.user = data.user;
         localStorage['uid'] = _this.user.id;
         $('.user-box').text(_this.user.name);
-        $('.user-box').prepend("<img src='/img/avatar/" + _this.user.id + ".jpeg' class='avatar' />");
+        $('.user-box').parent().prepend("<div class='clip'><img src='/img/avatar/" + _this.user.id + ".jpeg' class='avatar' /></div>");
+        $('.avatar').load(function() {
+          if (this.width > this.height) return $(this).addClass('avatar-wide');
+        });
         $('.login').fadeOut();
         $('.container').fadeIn();
         return _this.users.reset((function() {

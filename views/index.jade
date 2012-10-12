@@ -11,10 +11,6 @@ block body
       div.navbar-inner
         a.brand(href="#") OpenERP Chat
         ul.nav
-          li.active
-            a(href="#") Lobby
-          li
-            a(href="#") Play
 
         ul.nav.pull-right
           li.dropdown
@@ -30,7 +26,8 @@ block body
       ul.chat-windows
 
     script(type="text/template", id="chat-user")
-      img.avatar(src!="/img/avatar/<%= image %>.jpeg")
+      div.clip
+        img.avatar(src!="/img/avatar/<%= image %>.jpeg")
       div.name <%= name %>
       | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 
@@ -46,7 +43,8 @@ block body
         span.oe_e +
 
     script(type="text/template", id="chat-message")
-      img.avatar(src!="/img/avatar/<% print(app.getUser(from).get('image')) %>.jpeg")
+      div.clip
+        img.avatar(src!="/img/avatar/<% print(app.getUser(from).get('image')) %>.jpeg")
       span.time
         | <% t = messages[0].time; %>
         | <% minutes = t.getMinutes(); %>
