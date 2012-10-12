@@ -84,7 +84,7 @@ class ChatView extends Backbone.View
       @collection.add(m)
     $(@el).find('.prompt').val('')
   show: =>
-    $(@el).show().find('.messages').scrollTop(99999); $('.prompt').focus()
+    $(@el).show().find('.messages').scrollTop(99999).find('.prompt').focus()
     $(@el).find('.unreadMsg').text(++@unreadMsg).show() if $(@el).hasClass('folded')
   toggle: =>
     if $(@el).hasClass('folded')

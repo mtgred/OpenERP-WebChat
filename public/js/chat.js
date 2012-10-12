@@ -240,8 +240,7 @@
     };
 
     ChatView.prototype.show = function() {
-      $(this.el).show().find('.messages').scrollTop(99999);
-      $('.prompt').focus();
+      $(this.el).show().find('.messages').scrollTop(99999).find('.prompt').focus();
       if ($(this.el).hasClass('folded')) {
         return $(this.el).find('.unreadMsg').text(++this.unreadMsg).show();
       }
