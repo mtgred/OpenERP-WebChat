@@ -76,16 +76,18 @@
     };
 
     UsersView.prototype.addUser = function(user) {
-      return (new UserView({
-        model: user
-      })).render();
+      if (user.get('id') !== app.user.id) {
+        return (new UserView({
+          model: user
+        })).render();
+      }
     };
 
     UsersView.prototype.render = function() {
       var _this = this;
       $(this.el).find('> ul').empty();
       return this.collection.each(function(u) {
-        if (u.get('id') !== app.user.id) return _this.addUser(u);
+        return _this.addUser(u);
       });
     };
 

@@ -24,10 +24,10 @@ class UsersView extends Backbone.View
   events:
     'keyup .searchbox': 'filter'
     'click .searchclear': 'searchclear'
-  addUser: (user) => (new UserView(model: user)).render()
+  addUser: (user) => (new UserView(model: user)).render() if user.get('id') isnt app.user.id
   render: =>
     $(@el).find('> ul').empty()
-    @collection.each (u) => @addUser(u) if u.get('id') isnt app.user.id
+    @collection.each (u) => @addUser(u)
   filter: =>
     s = $('.searchbox').val().toLowerCase()
     if s
