@@ -81,7 +81,6 @@ class ChatView extends Backbone.View
     if input
       m = {from: localStorage['uid'], to: @options.dest, msg: input, time: new Date()}
       app.socket.emit 'pm', JSON.stringify(m)
-      @collection.add(m)
     $(@el).find('.prompt').val('')
   show: =>
     $(@el).show().find('.messages').scrollTop(99999).find('.prompt').focus()
@@ -134,7 +133,6 @@ class ChatApp
       localStorage['uid'] = @user.id
       $('.user-box').text(@user.name)
       $('.user-box').parent().prepend("<div class='clip'><img src='/img/avatar/#{@user.id}.jpeg' class='avatar' /></div>")
-
       $('.avatar').load -> $(@).addClass('avatar-wide') if @width > @height
       $('.login').fadeOut()
       $('.container').fadeIn()
@@ -147,8 +145,9 @@ class ChatApp
     @socket.on "connect", (id) => @users.each (u) -> u.set('online', true) if u.get('id') is id
     @socket.on "disconnect", (id) => @users.each (u) -> u.set('online', false) if u.get('id') is id
     @socket.on "pm", (data) =>
-      @createChannel(data.from) unless @channels[data.from]?
-      @channels[data.from].addMessage(data)
+      dest = if data.from is @user.id then data.to else data.from
+      @createChannel(dest) unless @channels[dest]?
+      @channels[dest].addMessage(data)
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]?

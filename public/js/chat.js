@@ -234,7 +234,6 @@
           time: new Date()
         };
         app.socket.emit('pm', JSON.stringify(m));
-        this.collection.add(m);
       }
       return $(this.el).find('.prompt').val('');
     };
@@ -404,8 +403,10 @@
         });
       });
       this.socket.on("pm", function(data) {
-        if (_this.channels[data.from] == null) _this.createChannel(data.from);
-        return _this.channels[data.from].addMessage(data);
+        var dest;
+        dest = data.from === _this.user.id ? data.to : data.from;
+        if (_this.channels[dest] == null) _this.createChannel(dest);
+        return _this.channels[dest].addMessage(data);
       });
     }
 

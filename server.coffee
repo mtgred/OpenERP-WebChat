@@ -27,7 +27,6 @@ pwd = 'h4WeH55k'
 host = 'openerp.my.openerp.com'
 domain = [['company_id','=',1]]
 
-
 port = 8069
 lc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/common' })
 fc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/object' })
@@ -36,7 +35,7 @@ fc.methodCall 'execute', [db,uid,pwd,'hr.employee','search',domain], (err, uids)
   fc.methodCall 'execute', [db,uid,pwd,'hr.employee','read',uids, ['name','user_id','photo']], (err, empls) ->
     for e in empls
       if e.user_id
-        users[e.user_id[0]] = { name: e.name, id: e.user_id[0].toString(), image: 'avatar', online: false, messages: [] }
+        users[e.user_id[0]] = { name: e.name, id: e.user_id[0].toString(), image: 'avatar', online: false, messages: [], sids: [] }
         if e.photo
           users[e.user_id[0]].image = e.user_id[0]
           fs.writeFile("public/img/avatar/#{e.user_id[0]}.jpeg", new Buffer(e.photo, "base64"), "binary", (err) -> console.log err if err)
@@ -48,7 +47,7 @@ io.sockets.on 'connection', (socket) ->
   logged = (uid) ->
     socket.uid = uid
     users[uid].online = true
-    users[uid].sid = socket.id
+    users[uid].sids.push(socket.id)
     socket.broadcast.emit('connect', uid)
     data = { user: users[uid], users: {id: v.id, name: v.name, image: v.image, online: v.online} for k, v of users }
     socket.emit('connected', data)
@@ -56,18 +55,22 @@ io.sockets.on 'connection', (socket) ->
     users[uid].messages = []
 
   socket.on 'disconnect', ->
-    users[socket.uid].online = false if socket.uid?
-    socket.broadcast.emit('disconnect', socket.uid) if socket.uid?
+    if socket.uid? and users[socket.uid].sids.length is 0
+      users[socket.uid].sids.splice(users[socket.uid].sids.indexOf(socket.id), 0)
+      users[socket.uid].online = false
+      socket.broadcast.emit('disconnect', socket.uid)
   socket.on 'logged', (data) -> logged(data.uid)
   socket.on 'login', (data) ->
     lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->
       if uid then logged(uid.toString()) else socket.emit 'error', 'Wrong login or password'
   socket.on 'pm', (data) ->
     d = JSON.parse(data)
+    console.log d
     if users[d.to].online
-      io.sockets.socket(users[d.to].sid).emit('pm', d)
+      io.sockets.socket(sid).emit('pm', d) for sid in users[d.to].sids
     else
       users[d.to].messages.push(d)
+    io.sockets.socket(sid).emit('pm', d) for sid in users[d.from].sids
 
 server.listen(3000)
 console.log('http://localhost:3000')
