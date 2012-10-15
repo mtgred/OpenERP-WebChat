@@ -302,6 +302,12 @@ textarea {
   -webkit-border-radius: 0 0 3px 3px;
   border-radius: 0 0 3px 3px;
 }
+.chat-window .chatview .helpmsg {
+  width: 100%;
+  background: #e8ebef;
+  padding: 3px;
+  display: none;
+}
 .chat-window .chatview .messages {
   overflow: auto;
   height: 323px;
@@ -328,7 +334,7 @@ textarea {
   line-height: 14px;
   font-weight: bold;
   font-size: 12px;
-  width: 178px;
+  width: 164px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;

@@ -67,8 +67,10 @@ class ChatView extends Backbone.View
   initialize: ->
     @collection.bind('add', @addMessage)
     @collection.bind('all', @show)
-    $('.chat-windows').append($(@el).html(@template(title: app.getUser(@options.dest).get('name'))))
-    $('.prompt').focus()
+    user = app.getUser(@options.dest)
+    $('.chat-windows').append($(@el).html(@template(title: user.get('name'))))
+    $(@el).find('.helpmsg').text("#{user.get('name')} is currently offline. You can send still send messages. He/She will receive them on his/her next connection.").show() unless user.get('online')
+    $(@el).find('.prompt').focus()
   events:
     'submit form': 'sendMessage'
     'click header': 'toggle'
@@ -79,6 +81,7 @@ class ChatView extends Backbone.View
     e.preventDefault()
     input = $(@el).find('.prompt').val()
     if input
+      $(@el).find('.helpmsg').hide()
       m = {from: localStorage['uid'], to: @options.dest, msg: input, time: new Date()}
       app.socket.emit 'pm', JSON.stringify(m)
     $(@el).find('.prompt').val('')
@@ -89,7 +92,7 @@ class ChatView extends Backbone.View
     if $(@el).hasClass('folded')
       $(@el).animate { height: '380px' }, complete: =>
         $(@el).removeClass('folded').find('.unreadMsg').hide()
-        $('.prompt').focus()
+        $(@el).find('.prompt').focus()
       @unreadMsg = 0
     else
       $(@el).animate({ height: '25px' }, { complete: => $(@el).addClass('folded') })

@@ -197,12 +197,17 @@
     ChatView.prototype.template = _.template($('#chat').html());
 
     ChatView.prototype.initialize = function() {
+      var user;
       this.collection.bind('add', this.addMessage);
       this.collection.bind('all', this.show);
+      user = app.getUser(this.options.dest);
       $('.chat-windows').append($(this.el).html(this.template({
-        title: app.getUser(this.options.dest).get('name')
+        title: user.get('name')
       })));
-      return $('.prompt').focus();
+      if (!user.get('online')) {
+        $(this.el).find('.helpmsg').text("" + (user.get('name')) + " is currently offline. You can send still send messages. He/She will receive them on his/her next connection.").show();
+      }
+      return $(this.el).find('.prompt').focus();
     };
 
     ChatView.prototype.events = {
@@ -227,6 +232,7 @@
       e.preventDefault();
       input = $(this.el).find('.prompt').val();
       if (input) {
+        $(this.el).find('.helpmsg').hide();
         m = {
           from: localStorage['uid'],
           to: this.options.dest,
@@ -253,7 +259,7 @@
         }, {
           complete: function() {
             $(_this.el).removeClass('folded').find('.unreadMsg').hide();
-            return $('.prompt').focus();
+            return $(_this.el).find('.prompt').focus();
           }
         });
         return this.unreadMsg = 0;
