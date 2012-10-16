@@ -205,7 +205,7 @@
         title: user.get('name')
       })));
       if (!user.get('online')) {
-        $(this.el).find('.helpmsg').text("" + (user.get('name')) + " is currently offline. You can send still send messages. He/She will receive them on his/her next connection.").show();
+        $(this.el).find('.helpmsg').text("" + (user.get('name')) + " is offline. He/She will receive your messages on his/her next connection.").show();
       }
       return $(this.el).find('.prompt').focus();
     };
@@ -255,7 +255,8 @@
       var _this = this;
       if ($(this.el).hasClass('folded')) {
         $(this.el).animate({
-          height: '380px'
+          height: '350px',
+          'margin-top': '0'
         }, {
           complete: function() {
             $(_this.el).removeClass('folded').find('.unreadMsg').hide();
@@ -265,7 +266,8 @@
         return this.unreadMsg = 0;
       } else {
         return $(this.el).animate({
-          height: '25px'
+          height: '25px',
+          'margin-top': '325px'
         }, {
           complete: function() {
             return $(_this.el).addClass('folded');

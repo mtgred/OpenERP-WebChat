@@ -69,7 +69,7 @@ class ChatView extends Backbone.View
     @collection.bind('all', @show)
     user = app.getUser(@options.dest)
     $('.chat-windows').append($(@el).html(@template(title: user.get('name'))))
-    $(@el).find('.helpmsg').text("#{user.get('name')} is currently offline. You can send still send messages. He/She will receive them on his/her next connection.").show() unless user.get('online')
+    $(@el).find('.helpmsg').text("#{user.get('name')} is offline. He/She will receive your messages on his/her next connection.").show() unless user.get('online')
     $(@el).find('.prompt').focus()
   events:
     'submit form': 'sendMessage'
@@ -90,12 +90,12 @@ class ChatView extends Backbone.View
     $(@el).find('.unreadMsg').text(++@unreadMsg).show() if $(@el).hasClass('folded')
   toggle: =>
     if $(@el).hasClass('folded')
-      $(@el).animate { height: '380px' }, complete: =>
+      $(@el).animate { height: '350px', 'margin-top': '0' }, complete: =>
         $(@el).removeClass('folded').find('.unreadMsg').hide()
         $(@el).find('.prompt').focus()
       @unreadMsg = 0
     else
-      $(@el).animate({ height: '25px' }, { complete: => $(@el).addClass('folded') })
+      $(@el).animate({ height: '25px', 'margin-top': '325px' }, { complete: => $(@el).addClass('folded') })
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
