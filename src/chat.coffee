@@ -151,6 +151,7 @@ class ChatApp
       dest = if data.from is @user.id then data.to else data.from
       @createChannel(dest) unless @channels[dest]?
       @channels[dest].addMessage(data)
+      document.getElementById("ting").play() unless document.hasFocus()
   channels: {}
   createChannel: (dest) =>
     if @channels[dest]?

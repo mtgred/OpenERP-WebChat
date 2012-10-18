@@ -414,7 +414,8 @@
         var dest;
         dest = data.from === _this.user.id ? data.to : data.from;
         if (_this.channels[dest] == null) _this.createChannel(dest);
-        return _this.channels[dest].addMessage(data);
+        _this.channels[dest].addMessage(data);
+        if (!document.hasFocus()) return document.getElementById("ting").play();
       });
     }
 
