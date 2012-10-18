@@ -151,8 +151,12 @@ class ChatApp
       dest = if data.from is @user.id then data.to else data.from
       @createChannel(dest) unless @channels[dest]?
       @channels[dest].addMessage(data)
-      document.getElementById("ting").play() unless document.hasFocus()
+      unless document.hasFocus()
+        document.title = "(#{++@unreadMsg}) OpenERP"
+        document.getElementById("ting").play()
+    $('window').focus => document.title = "OpenERP"; @unreadMsg = 0
   channels: {}
+  unreadMsg: 0
   createChannel: (dest) =>
     if @channels[dest]?
       @channels[dest].chatView.show()

@@ -415,11 +415,20 @@
         dest = data.from === _this.user.id ? data.to : data.from;
         if (_this.channels[dest] == null) _this.createChannel(dest);
         _this.channels[dest].addMessage(data);
-        if (!document.hasFocus()) return document.getElementById("ting").play();
+        if (!document.hasFocus()) {
+          document.title = "(" + (++_this.unreadMsg) + ") OpenERP";
+          return document.getElementById("ting").play();
+        }
+      });
+      $('window').focus(function() {
+        document.title = "OpenERP";
+        return _this.unreadMsg = 0;
       });
     }
 
     ChatApp.prototype.channels = {};
+
+    ChatApp.prototype.unreadMsg = 0;
 
     ChatApp.prototype.createChannel = function(dest) {
       if (this.channels[dest] != null) {
