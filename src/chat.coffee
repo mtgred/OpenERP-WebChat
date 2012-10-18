@@ -154,7 +154,7 @@ class ChatApp
       unless document.hasFocus()
         document.title = "(#{++@unreadMsg}) OpenERP"
         document.getElementById("ting").play()
-    $('window').focus => document.title = "OpenERP"; @unreadMsg = 0
+    $(window).focus => document.title = "OpenERP"; @unreadMsg = 0
   channels: {}
   unreadMsg: 0
   createChannel: (dest) =>

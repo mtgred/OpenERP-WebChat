@@ -420,7 +420,7 @@
           return document.getElementById("ting").play();
         }
       });
-      $('window').focus(function() {
+      $(window).focus(function() {
         document.title = "OpenERP";
         return _this.unreadMsg = 0;
       });
