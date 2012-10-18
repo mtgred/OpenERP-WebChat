@@ -183,6 +183,8 @@
     __extends(ChatView, _super);
 
     function ChatView() {
+      this.fold = __bind(this.fold, this);
+      this.unfold = __bind(this.unfold, this);
       this.toggle = __bind(this.toggle, this);
       this.show = __bind(this.show, this);
       this.sendMessage = __bind(this.sendMessage, this);
@@ -215,7 +217,7 @@
       'click header': 'toggle',
       'click .close': function() {
         $(this.el).hide();
-        return this.toggle();
+        return false;
       }
     };
 
@@ -252,28 +254,39 @@
     };
 
     ChatView.prototype.toggle = function() {
-      var _this = this;
       if ($(this.el).hasClass('folded')) {
-        $(this.el).animate({
-          height: '350px',
-          'margin-top': '0'
-        }, {
-          complete: function() {
-            $(_this.el).removeClass('folded').find('.unreadMsg').hide();
-            return $(_this.el).find('.prompt').focus();
-          }
-        });
-        return this.unreadMsg = 0;
+        return this.unfold();
       } else {
-        return $(this.el).animate({
-          height: '25px',
-          'margin-top': '325px'
-        }, {
-          complete: function() {
-            return $(_this.el).addClass('folded');
-          }
-        });
+        return this.fold();
       }
+    };
+
+    ChatView.prototype.unfold = function() {
+      var _this = this;
+      $(this.el).animate({
+        height: '350px',
+        'margin-top': '0'
+      }, {
+        complete: function() {
+          $(_this.el).removeClass('folded').find('.unreadMsg').hide();
+          return $(_this.el).find('.prompt').focus();
+        }
+      });
+      this.unreadMsg = 0;
+      return this;
+    };
+
+    ChatView.prototype.fold = function() {
+      var _this = this;
+      $(this.el).animate({
+        height: '25px',
+        'margin-top': '325px'
+      }, {
+        complete: function() {
+          return $(_this.el).addClass('folded');
+        }
+      });
+      return this;
     };
 
     return ChatView;
@@ -432,7 +445,7 @@
 
     ChatApp.prototype.createChannel = function(dest) {
       if (this.channels[dest] != null) {
-        return this.channels[dest].chatView.show();
+        return this.channels[dest].chatView.unfold().show();
       } else {
         return this.channels[dest] = new Channel(dest);
       }

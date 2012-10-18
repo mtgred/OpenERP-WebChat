@@ -74,7 +74,7 @@ class ChatView extends Backbone.View
   events:
     'submit form': 'sendMessage'
     'click header': 'toggle'
-    'click .close': -> $(@el).hide(); @toggle()
+    'click .close': -> $(@el).hide(); false
   unreadMsg: 0
   addMessage: (msg) => $(@el).find('.messages').append((new MessageView model: msg).render())
   sendMessage: (e) =>
@@ -88,14 +88,16 @@ class ChatView extends Backbone.View
   show: =>
     $(@el).show().find('.messages').scrollTop(99999).find('.prompt').focus()
     $(@el).find('.unreadMsg').text(++@unreadMsg).show() if $(@el).hasClass('folded')
-  toggle: =>
-    if $(@el).hasClass('folded')
-      $(@el).animate { height: '350px', 'margin-top': '0' }, complete: =>
-        $(@el).removeClass('folded').find('.unreadMsg').hide()
-        $(@el).find('.prompt').focus()
-      @unreadMsg = 0
-    else
-      $(@el).animate({ height: '25px', 'margin-top': '325px' }, { complete: => $(@el).addClass('folded') })
+  toggle: => if $(@el).hasClass('folded') then @unfold() else @fold()
+  unfold: =>
+    $(@el).animate { height: '350px', 'margin-top': '0' }, complete: =>
+      $(@el).removeClass('folded').find('.unreadMsg').hide()
+      $(@el).find('.prompt').focus()
+    @unreadMsg = 0
+    @
+  fold: =>
+    $(@el).animate({ height: '25px', 'margin-top': '325px' }, { complete: => $(@el).addClass('folded') })
+    @
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
@@ -159,7 +161,7 @@ class ChatApp
   unreadMsg: 0
   createChannel: (dest) =>
     if @channels[dest]?
-      @channels[dest].chatView.show()
+      @channels[dest].chatView.unfold().show()
     else
       @channels[dest] = new Channel(dest)
   login: (login, password) -> @socket.emit "login", { login: login, pwd: password }

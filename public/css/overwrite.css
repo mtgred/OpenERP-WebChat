@@ -291,7 +291,7 @@ textarea {
 }
 .chat-window .chatview .unreadMsg {
   display: none;
-  margin-left: 3 pk;
+  margin-left: 3px;
 }
 .chat-window .chatview footer {
   position: absolute;
