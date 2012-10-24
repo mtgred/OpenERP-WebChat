@@ -26,6 +26,10 @@
   visibility: hidden;
   font-size: 0;
 }
+.online-status {
+  width: 11px;
+  height: 11px;
+}
 .oe_e {
   font-family: "entypoRegular" !important;
   font-size: 36px;
@@ -204,11 +208,18 @@ textarea {
 }
 .chatapp .users li .name {
   float: left;
-  width: 150px;
+  width: 162px;
   line-height: 26px;
+  padding-right: 15px;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  position: relative;
+}
+.chatapp .users li .name .online-status {
+  position: absolute;
+  top: 7px;
+  right: 0;
 }
 .chatapp header {
   position: absolute;
@@ -250,12 +261,6 @@ textarea {
 .chatapp header .searchclear:hover {
   color: #888;
 }
-.chatapp .online-status {
-  width: 11px;
-  height: 11px;
-  float: right;
-  margin-top: 6px;
-}
 .chat-windows {
   position: absolute;
   bottom: 6px;
@@ -288,6 +293,9 @@ textarea {
   border-radius: 3px 3px 0 0;
   border-bottom: 1px solid #aeb9bd;
   cursor: pointer;
+}
+.chat-window .chatview > header .online-status {
+  margin-top: -4px;
 }
 .chat-window .chatview .unreadMsg {
   display: none;

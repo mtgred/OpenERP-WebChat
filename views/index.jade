@@ -29,7 +29,7 @@ block body
       div.clip
         img.avatar(src!="/img/avatar/<%= image %>.jpeg")
       div.name <%= name %>
-      | <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
+        <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 
     script(type="text/template", id="user-list")
       header
@@ -44,7 +44,7 @@ block body
 
     script(type="text/template", id="chat-message")
       div.clip
-        img.avatar(src!="/img/avatar/<% print(app.getUser(from).get('image')) %>.jpeg")
+        img.avatar(src!="/img/avatar/<%= app.getUser(from).get('image') %>.jpeg")
       span.time
         | <% t = messages[0].time; %>
         | <% minutes = t.getMinutes(); %>
@@ -59,7 +59,8 @@ block body
     script(type="text/template", id="chat")
       div.chatview
         header
-          <%= title %>
+          <% if(user.get('online')) { %> <img src="/img/green.png" class="online-status" /> <% } %>
+          <%= user.get('name') %>
           span.unreadMsg.label.label-important 
           button.close ×
         div.helpmsg

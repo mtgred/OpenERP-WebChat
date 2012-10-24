@@ -49,16 +49,17 @@ io.sockets.on 'connection', (socket) ->
     users[uid].online = true
     users[uid].sids.push(socket.id)
     socket.broadcast.emit('connect', uid)
-    data = { user: users[uid], users: {id: v.id, name: v.name, image: v.image, online: v.online} for k, v of users }
+    data = {user: users[uid], users: {id: v.id, name: v.name, image: v.image, online: v.online} for k, v of users}
     socket.emit('connected', data)
     socket.emit('pm', msg) for msg in users[uid].messages
     users[uid].messages = []
 
   socket.on 'disconnect', ->
-    if socket.uid? and users[socket.uid].sids.length is 0
-      users[socket.uid].sids.splice(users[socket.uid].sids.indexOf(socket.id), 0)
-      users[socket.uid].online = false
-      socket.broadcast.emit('disconnect', socket.uid)
+    if socket.uid?
+      users[socket.uid].sids.splice(users[socket.uid].sids.indexOf(socket.id), 1)
+      if users[socket.uid].sids.length is 0
+        users[socket.uid].online = false
+        io.sockets.emit('disconnect', socket.uid)
   socket.on 'logged', (data) -> logged(data.uid)
   socket.on 'login', (data) ->
     lc.methodCall 'login', [db, data.login, data.pwd], (err, uid) ->

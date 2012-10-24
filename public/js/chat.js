@@ -188,6 +188,7 @@
       this.toggle = __bind(this.toggle, this);
       this.show = __bind(this.show, this);
       this.sendMessage = __bind(this.sendMessage, this);
+      this.updateStatus = __bind(this.updateStatus, this);
       this.addMessage = __bind(this.addMessage, this);
       ChatView.__super__.constructor.apply(this, arguments);
     }
@@ -199,15 +200,15 @@
     ChatView.prototype.template = _.template($('#chat').html());
 
     ChatView.prototype.initialize = function() {
-      var user;
+      this.user = app.getUser(this.options.dest);
       this.collection.bind('add', this.addMessage);
       this.collection.bind('all', this.show);
-      user = app.getUser(this.options.dest);
+      this.user.bind('change:online', this.updateStatus);
       $('.chat-windows').append($(this.el).html(this.template({
-        title: user.get('name')
+        user: this.user
       })));
-      if (!user.get('online')) {
-        $(this.el).find('.helpmsg').text("" + (user.get('name')) + " is offline. He/She will receive your messages on his/her next connection.").show();
+      if (!this.user.get('online')) {
+        $(this.el).find('.helpmsg').text("" + (this.user.get('name')) + " is offline. He/She will receive your messages on his/her next connection.").show();
       }
       return $(this.el).find('.prompt').focus();
     };
@@ -227,6 +228,16 @@
       return $(this.el).find('.messages').append((new MessageView({
         model: msg
       })).render());
+    };
+
+    ChatView.prototype.updateStatus = function() {
+      if (this.user.get('online')) {
+        $(this.el).find('.helpmsg').text("" + (this.user.get('name')) + " went online").hide().fadeIn();
+        return $(this.el).find('.online-status').show();
+      } else {
+        $(this.el).find('.helpmsg').text("" + (this.user.get('name')) + " went offline").hide().fadeIn();
+        return $(this.el).find('.online-status').hide();
+      }
     };
 
     ChatView.prototype.sendMessage = function(e) {
@@ -272,6 +283,9 @@
           return $(_this.el).find('.prompt').focus();
         }
       });
+      if (!this.user.get('online')) {
+        $(this.el).find('.helpmsg').text("" + (this.user.get('name')) + " is offline. He/She will receive your messages on his/her next connection.").show();
+      }
       this.unreadMsg = 0;
       return this;
     };

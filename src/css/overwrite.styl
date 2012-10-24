@@ -58,6 +58,10 @@ ellipsis()
   visibility: hidden
   font-size: 0
 
+.online-status
+  width: 11px
+  height: 11px
+
 .oe_e
   font-family: "entypoRegular" !important
   font-size: 36px
@@ -211,9 +215,15 @@ input, textarea
         background: lightGrey
       .name
         float: left
-        width: 150px
+        width: 162px
         line-height: 26px
+        padding-right: 15px
         ellipsis()
+        position: relative
+        .online-status
+          position: absolute
+          top: 7px
+          right: 0
   header
     position: absolute
     top: 0
@@ -245,11 +255,6 @@ input, textarea
       cursor: pointer
       &:hover
         color: #888
-  .online-status
-    width: 11px
-    height: 11px
-    float: right
-    margin-top: 6px
 
 .chat-windows
   position: absolute
@@ -273,6 +278,8 @@ input, textarea
       radius(3px 3px 0 0)
       border-bottom: 1px solid border-color
       cursor: pointer
+      .online-status
+        margin-top: -4px
     .unreadMsg
       display: none
       margin-left: 3px

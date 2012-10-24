@@ -65,11 +65,12 @@ class ChatView extends Backbone.View
   className: 'chat-window'
   template: _.template $('#chat').html()
   initialize: ->
+    @user = app.getUser(@options.dest)
     @collection.bind('add', @addMessage)
     @collection.bind('all', @show)
-    user = app.getUser(@options.dest)
-    $('.chat-windows').append($(@el).html(@template(title: user.get('name'))))
-    $(@el).find('.helpmsg').text("#{user.get('name')} is offline. He/She will receive your messages on his/her next connection.").show() unless user.get('online')
+    @user.bind('change:online', @updateStatus)
+    $('.chat-windows').append($(@el).html(@template(user: @user)))
+    $(@el).find('.helpmsg').text("#{@user.get('name')} is offline. He/She will receive your messages on his/her next connection.").show() unless @user.get('online')
     $(@el).find('.prompt').focus()
   events:
     'submit form': 'sendMessage'
@@ -77,6 +78,13 @@ class ChatView extends Backbone.View
     'click .close': -> $(@el).hide(); false
   unreadMsg: 0
   addMessage: (msg) => $(@el).find('.messages').append((new MessageView model: msg).render())
+  updateStatus: =>
+    if @user.get('online')
+      $(@el).find('.helpmsg').text("#{@user.get('name')} went online").hide().fadeIn()
+      $(@el).find('.online-status').show()
+    else
+      $(@el).find('.helpmsg').text("#{@user.get('name')} went offline").hide().fadeIn()
+      $(@el).find('.online-status').hide()
   sendMessage: (e) =>
     e.preventDefault()
     input = $(@el).find('.prompt').val()
@@ -93,11 +101,10 @@ class ChatView extends Backbone.View
     $(@el).animate { height: '350px', 'margin-top': '0' }, complete: =>
       $(@el).removeClass('folded').find('.unreadMsg').hide()
       $(@el).find('.prompt').focus()
-    @unreadMsg = 0
-    @
+    $(@el).find('.helpmsg').text("#{@user.get('name')} is offline. He/She will receive your messages on his/her next connection.").show() unless @user.get('online')
+    @unreadMsg = 0; @
   fold: =>
-    $(@el).animate({ height: '25px', 'margin-top': '325px' }, { complete: => $(@el).addClass('folded') })
-    @
+    $(@el).animate({ height: '25px', 'margin-top': '325px' }, { complete: => $(@el).addClass('folded') }); @
 
 class ChatMenuView extends Backbone.View
   tagName: 'li'
