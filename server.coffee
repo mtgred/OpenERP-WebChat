@@ -5,7 +5,19 @@ server = require('http').createServer(app)
 io = require('socket.io').listen(server)
 xmlrpc = require('xmlrpc')
 fs = require('fs')
+mongoose = require('mongoose')
+Schema = mongoose.Schema
 
+# Mongoose
+db = mongoose.createConnection('localhost', 'webchat')
+messageSchema = new Schema
+  from: String
+  to: String
+  msg: [String]
+  time: { type: Date, default: Date.now }
+Message = db.model('Message', messageSchema)
+
+# Express
 app.configure ->
   app.use express.bodyParser()
   app.use express.methodOverride()
@@ -66,12 +78,19 @@ io.sockets.on 'connection', (socket) ->
       if uid then logged(uid.toString()) else socket.emit 'error', 'Wrong login or password'
   socket.on 'pm', (data) ->
     d = JSON.parse(data)
-    console.log d
+    d.time = new Date()
+    (new Message(d)).save (err) -> console.error(err) if err
     if users[d.to].online
       io.sockets.socket(sid).emit('pm', d) for sid in users[d.to].sids
     else
       users[d.to].messages.push(d)
     io.sockets.socket(sid).emit('pm', d) for sid in users[d.from].sids
+  socket.on 'getMessageLog', (data) ->
+    uid = JSON.parse(data).uid
+    Message.find {$or: [{from: socket.uid, to: uid}, {from: uid, to: socket.uid}]}, (err, msgs) ->
+      console.error(err) if err
+      socket.emit('messageLog', {uid: uid, msgs: msgs})
+
 
 server.listen(3000)
 console.log('http://localhost:3000')

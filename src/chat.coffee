@@ -66,6 +66,7 @@ class ChatView extends Backbone.View
   template: _.template $('#chat').html()
   initialize: ->
     @user = app.getUser(@options.dest)
+    app.socket.emit 'getMessageLog', JSON.stringify(uid: @options.dest)
     @collection.bind('add', @addMessage)
     @collection.bind('all', @show)
     @user.bind('change:online', @updateStatus)
@@ -90,7 +91,7 @@ class ChatView extends Backbone.View
     input = $(@el).find('.prompt').val()
     if input
       $(@el).find('.helpmsg').hide()
-      m = {from: localStorage['uid'], to: @options.dest, msg: input, time: new Date()}
+      m = {from: localStorage['uid'], to: @options.dest, msg: input}
       app.socket.emit 'pm', JSON.stringify(m)
     $(@el).find('.prompt').val('')
   show: =>
@@ -163,6 +164,9 @@ class ChatApp
       unless document.hasFocus()
         document.title = "(#{++@unreadMsg}) OpenERP"
         document.getElementById("ting").play()
+    @socket.on "messageLog", (data) =>
+      @channels[data.uid].addMessage(msg) for msg in data.msgs
+
     $(window).focus => document.title = "OpenERP"; @unreadMsg = 0
   channels: {}
   unreadMsg: 0

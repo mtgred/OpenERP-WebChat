@@ -201,6 +201,9 @@
 
     ChatView.prototype.initialize = function() {
       this.user = app.getUser(this.options.dest);
+      app.socket.emit('getMessageLog', JSON.stringify({
+        uid: this.options.dest
+      }));
       this.collection.bind('add', this.addMessage);
       this.collection.bind('all', this.show);
       this.user.bind('change:online', this.updateStatus);
@@ -249,8 +252,7 @@
         m = {
           from: localStorage['uid'],
           to: this.options.dest,
-          msg: input,
-          time: new Date()
+          msg: input
         };
         app.socket.emit('pm', JSON.stringify(m));
       }
@@ -446,6 +448,16 @@
           document.title = "(" + (++_this.unreadMsg) + ") OpenERP";
           return document.getElementById("ting").play();
         }
+      });
+      this.socket.on("messageLog", function(data) {
+        var msg, _i, _len, _ref, _results;
+        _ref = data.msgs;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          msg = _ref[_i];
+          _results.push(_this.channels[data.uid].addMessage(msg));
+        }
+        return _results;
       });
       $(window).focus(function() {
         document.title = "OpenERP";
