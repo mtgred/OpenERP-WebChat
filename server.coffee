@@ -87,7 +87,7 @@ io.sockets.on 'connection', (socket) ->
     io.sockets.socket(sid).emit('pm', d) for sid in users[d.from].sids
   socket.on 'getMessageLog', (data) ->
     uid = JSON.parse(data).uid
-    Message.find {$or: [{from: socket.uid, to: uid}, {from: uid, to: socket.uid}]}, (err, msgs) ->
+    Message.find().or([{from: socket.uid, to: uid}, {from: uid, to: socket.uid}]).limit(50).exec (err, msgs) ->
       console.error(err) if err
       socket.emit('messageLog', {uid: uid, msgs: msgs})
 
