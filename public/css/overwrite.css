@@ -316,6 +316,8 @@ textarea {
   border-radius: 0 0 3px 3px;
 }
 .chat-window .chatview .helpmsg {
+  position: absolute;
+  z-index: 100;
   width: 100%;
   background: #e8ebef;
   padding: 5px;
