@@ -1,5 +1,5 @@
 (function() {
-  var Channel, ChatApp, ChatMenuView, ChatView, MessageView, Messages, UserView, UsersView,
+  var Channel, ChatApp, ChatMenuView, ChatView, ConversationLineView, ConversationView, InboxLineView, InboxMenuView, InboxView, MessageView, Messages, UserView, UsersView,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -201,9 +201,6 @@
 
     ChatView.prototype.initialize = function() {
       this.user = app.getUser(this.options.dest);
-      app.socket.emit('getMessageLog', JSON.stringify({
-        uid: this.options.dest
-      }));
       this.collection.bind('add', this.addMessage);
       this.collection.bind('all', this.show);
       this.user.bind('change:online', this.updateStatus);
@@ -382,6 +379,190 @@
 
   })();
 
+  ConversationLineView = (function(_super) {
+
+    __extends(ConversationLineView, _super);
+
+    function ConversationLineView() {
+      ConversationLineView.__super__.constructor.apply(this, arguments);
+    }
+
+    ConversationLineView.prototype.tagName = 'li';
+
+    ConversationLineView.prototype.className = 'conversation-line';
+
+    ConversationLineView.prototype.template = _.template($('#conversation-line').html());
+
+    ConversationLineView.prototype.initialize = function() {
+      return this.model.bind('change', this.render, this);
+    };
+
+    ConversationLineView.prototype.render = function() {
+      return $(this.el).html(this.template(this.model.toJSON()));
+    };
+
+    return ConversationLineView;
+
+  })(Backbone.View);
+
+  ConversationView = (function(_super) {
+
+    __extends(ConversationView, _super);
+
+    function ConversationView() {
+      this.render = __bind(this.render, this);
+      this.addLine = __bind(this.addLine, this);
+      this.initialize = __bind(this.initialize, this);
+      ConversationView.__super__.constructor.apply(this, arguments);
+    }
+
+    ConversationView.prototype.tagName = 'ul';
+
+    ConversationView.prototype.initialize = function() {
+      this.collection.bind('add', this.addLine);
+      return this.collection.bind('reset', this.render);
+    };
+
+    ConversationView.prototype.addLine = function(line) {
+      $(this.el).append((new ConversationLineView({
+        model: line
+      })).render());
+      return $('.conversation').scrollTop(99999);
+    };
+
+    ConversationView.prototype.render = function() {
+      var _this = this;
+      $('.conversation').html(this.el);
+      return this.collection.each(function(line) {
+        return _this.addLine(line);
+      });
+    };
+
+    return ConversationView;
+
+  })(Backbone.View);
+
+  InboxLineView = (function(_super) {
+
+    __extends(InboxLineView, _super);
+
+    function InboxLineView() {
+      this.activate = __bind(this.activate, this);
+      InboxLineView.__super__.constructor.apply(this, arguments);
+    }
+
+    InboxLineView.prototype.tagName = 'li';
+
+    InboxLineView.prototype.className = 'inbox-line';
+
+    InboxLineView.prototype.template = _.template($('#inbox-line').html());
+
+    InboxLineView.prototype.initialize = function() {
+      return this.model.bind('change', this.render);
+    };
+
+    InboxLineView.prototype.events = {
+      'click': 'activate'
+    };
+
+    InboxLineView.prototype.render = function() {
+      return $(this.el).html(this.template(this.model.toJSON()));
+    };
+
+    InboxLineView.prototype.activate = function() {
+      $(this.el).addClass('inboxline-active');
+      return app.inboxView.activate(this.model.get('uid'));
+    };
+
+    return InboxLineView;
+
+  })(Backbone.View);
+
+  InboxView = (function(_super) {
+
+    __extends(InboxView, _super);
+
+    function InboxView() {
+      this.render = __bind(this.render, this);
+      this.addLine = __bind(this.addLine, this);
+      this.initialize = __bind(this.initialize, this);
+      InboxView.__super__.constructor.apply(this, arguments);
+    }
+
+    InboxView.prototype.tagName = 'ul';
+
+    InboxView.prototype.initialize = function() {
+      this.collection.bind('add', this.addLine);
+      this.collection.bind('reset', this.render);
+      $('.inbox').html(this.el);
+      return app.socket.emit('getLastMessages');
+    };
+
+    InboxView.prototype.addLine = function(line) {
+      return $(this.el).append((new InboxLineView({
+        model: line
+      })).render());
+    };
+
+    InboxView.prototype.render = function() {
+      var _this = this;
+      $(this.el).empty();
+      this.collection.each(function(line) {
+        return _this.addLine(line);
+      });
+      return this.activate(this.collection.last().get('uid'));
+    };
+
+    InboxView.prototype.activate = function(uid) {
+      $('.inboxline-active').removeClass('inboxline-active');
+      $('.conversation > ul').empty();
+      app.conversation.selectedConversation = uid;
+      return app.socket.emit('getMessageLog', uid);
+    };
+
+    return InboxView;
+
+  })(Backbone.View);
+
+  InboxMenuView = (function(_super) {
+
+    __extends(InboxMenuView, _super);
+
+    function InboxMenuView() {
+      this.toggle = __bind(this.toggle, this);
+      this.render = __bind(this.render, this);
+      InboxMenuView.__super__.constructor.apply(this, arguments);
+    }
+
+    InboxMenuView.prototype.tagName = 'li';
+
+    InboxMenuView.prototype.template = _.template($('#inbox-menu').html());
+
+    InboxMenuView.prototype.initialize = function() {
+      $('.nav.pull-right').prepend(this.el);
+      return this.render();
+    };
+
+    InboxMenuView.prototype.events = {
+      'click': 'toggle'
+    };
+
+    InboxMenuView.prototype.render = function() {
+      return $(this.el).html(this.template({
+        messagecount: 0
+      }));
+    };
+
+    InboxMenuView.prototype.toggle = function() {
+      $(this.el).toggleClass('active');
+      $('.main').toggle();
+      return false;
+    };
+
+    return InboxMenuView;
+
+  })(Backbone.View);
+
   ChatApp = (function() {
 
     function ChatApp() {
@@ -389,12 +570,8 @@
       this.createChannel = __bind(this.createChannel, this);
       var _this = this;
       this.users = new Backbone.Collection();
-      this.usersView = new UsersView({
-        collection: this.users
-      });
-      this.chatmenuView = new ChatMenuView({
-        collection: this.users
-      });
+      this.inbox = new Backbone.Collection();
+      this.conversation = new Backbone.Collection();
       this.socket = io.connect('/');
       this.socket.on("error", function(err) {
         return console.log(err);
@@ -403,13 +580,28 @@
         var u;
         _this.user = data.user;
         localStorage['uid'] = _this.user.id;
+        _this.usersView = new UsersView({
+          collection: _this.users
+        });
+        _this.chatmenuView = new ChatMenuView({
+          collection: _this.users
+        });
+        _this.ConversationView = new ConversationView({
+          collection: _this.conversation
+        });
+        _this.inboxView = new InboxView({
+          collection: _this.inbox
+        });
+        _this.inboxmenuView = new InboxMenuView({
+          collection: _this.inbox
+        });
         $('.user-box').text(_this.user.name);
         $('.user-box').parent().prepend("<div class='clip'><img src='/img/avatar/" + _this.user.id + ".jpeg' class='avatar' /></div>");
         $('.avatar').load(function() {
           if (this.width > this.height) return $(this).addClass('avatar-wide');
         });
         $('.login').fadeOut();
-        $('.container').fadeIn();
+        $('.openerp').fadeIn();
         return _this.users.reset((function() {
           var _i, _len, _ref, _results;
           _ref = data.users;
@@ -422,7 +614,7 @@
         })());
       });
       if (localStorage['uid'] != null) {
-        $('.container').fadeIn();
+        $('.openerp').fadeIn();
         this.socket.emit("logged", {
           uid: localStorage['uid']
         });
@@ -440,9 +632,12 @@
         });
       });
       this.socket.on("pm", function(data) {
-        var dest;
+        var dest, uid;
         dest = data.from === _this.user.id ? data.to : data.from;
         if (_this.channels[dest] == null) _this.createChannel(dest);
+        uid = app.conversation.selectedConversation;
+        data.time = new Date(data.time);
+        if (uid === data.from || uid === data.to) _this.conversation.add(data);
         _this.channels[dest].addMessage(data);
         if (!document.hasFocus()) {
           document.title = "(" + (++_this.unreadMsg) + ") OpenERP";
@@ -450,14 +645,23 @@
         }
       });
       this.socket.on("messageLog", function(data) {
-        var msg, _i, _len, _ref, _results;
+        var d, _i, _len, _ref;
         _ref = data.msgs;
-        _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          msg = _ref[_i];
-          _results.push(_this.channels[data.uid].addMessage(msg));
+          d = _ref[_i];
+          d.time = new Date(d.time);
         }
-        return _results;
+        return _this.conversation.reset(data.msgs);
+      });
+      this.socket.on("lastMessages", function(data) {
+        var d, _i, _len;
+        for (_i = 0, _len = data.length; _i < _len; _i++) {
+          d = data[_i];
+          d.time = new Date(d.time);
+        }
+        return _this.inbox.reset(data.sort(function(a, b) {
+          return b.time - a.time;
+        }));
       });
       $(window).focus(function() {
         document.title = "OpenERP";

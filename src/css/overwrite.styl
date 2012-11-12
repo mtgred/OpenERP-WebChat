@@ -71,6 +71,15 @@ ellipsis()
   font-size: 18px
   line-height: 16px
 
+.frame-header
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  vertical-gradient(#fcfcfc, #dedede)
+  border-bottom: 1px solid border-color !important
+  padding: 5px
+
 .navbar
   .brand
     margin-left: 0
@@ -188,18 +197,74 @@ input, textarea
   input:-ms-input-placeholder
     color: #fff
 
-.container
+.openerp
   display: none
+  position: fixed
+  left: 0
+  right: 0
+  top: 0
+  bottom: 0
 
-.chatapp
+.main
+  display: none
+  position: absolute
+  left: 220px
+  right: 0
+  top: 37px
+  bottom: 0
+
+.content
+  position: absolute
+  top: 50px
+  left: 0
+  right: 0
+  bottom: 0
+
+.inbox
+  display: inline-block
+  vertical-align: top
+  height: 100%
+  width: 350px
+  background: white
+  border-right: 1px solid border-color
+  overflow: auto
+  .frame-header
+    border-bottom: 1px solid border-color
+  ul > li
+    padding: 6px
+    border-bottom: 1px solid border-color
+    cursor: pointer
+    &:hover
+      background: background-color
+  ul > li.inboxline-active
+    background: lightGrey
+  .inboxline-content
+    margin-left: 32px
+    line-height: 16px
+    .time
+      color: faded-text
+
+.conversation
+  display: inline-block
+  vertical-align: top
+  height: 100%
+  width: 350px
+  background: white
+  border-right: 1px solid border-color
+  overflow: auto
+
+.menu, .chatapp
   width: 220px
   position: fixed
   top: 37px
   bottom: 0
-  right: 0
   background: background-color
-  border-left: 1px solid border-color
+  border-right: 1px solid border-color
   vertical-align: top
+
+.chatapp
+  right: 0
+  border-left: 1px solid border-color
   .users
     margin-top: 35px
     padding: 3px 0 40px 0
@@ -224,14 +289,7 @@ input, textarea
           position: absolute
           top: 7px
           right: 0
-  header
-    position: absolute
-    top: 0
-    left: 0
-    right: 0
-    vertical-gradient(#fcfcfc, #dedede)
-    border-bottom: 1px solid border-color
-    padding: 5px
+  .frame-header
     .searchbox
       width: 100%
       padding: 1px 21px 1px 19px

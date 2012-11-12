@@ -66,7 +66,6 @@ class ChatView extends Backbone.View
   template: _.template $('#chat').html()
   initialize: ->
     @user = app.getUser(@options.dest)
-    app.socket.emit 'getMessageLog', JSON.stringify(uid: @options.dest)
     @collection.bind('add', @addMessage)
     @collection.bind('all', @show)
     @user.bind('change:online', @updateStatus)
@@ -134,24 +133,94 @@ class Channel
     msg.time = new Date(msg.time)
     @messages.add(msg)
 
+class ConversationLineView extends Backbone.View
+  tagName: 'li'
+  className: 'conversation-line'
+  template: _.template $('#conversation-line').html()
+  initialize: -> @model.bind('change', @render, @)
+  render: -> $(@el).html(@template @model.toJSON())
+
+class ConversationView extends Backbone.View
+  tagName: 'ul'
+  initialize: =>
+    @collection.bind('add', @addLine)
+    @collection.bind('reset', @render)
+  addLine: (line) =>
+    $(@el).append((new ConversationLineView model: line).render())
+    $('.conversation').scrollTop(99999)
+  render: =>
+    $('.conversation').html(@el)
+    @collection.each (line) => @addLine(line)
+
+class InboxLineView extends Backbone.View
+  tagName: 'li'
+  className: 'inbox-line'
+  template: _.template $('#inbox-line').html()
+  initialize: -> @model.bind('change', @render)
+  events: 'click': 'activate'
+  render: -> $(@el).html(@template @model.toJSON())
+  activate: =>
+    $(@el).addClass('inboxline-active')
+    app.inboxView.activate(@model.get('uid'))
+
+class InboxView extends Backbone.View
+  tagName: 'ul'
+  initialize: =>
+    @collection.bind('add', @addLine)
+    @collection.bind('reset', @render)
+    $('.inbox').html(@el)
+    app.socket.emit('getLastMessages')
+  addLine: (line) => $(@el).append((new InboxLineView model: line).render())
+  render: =>
+    $(@el).empty()
+    @collection.each (line) => @addLine(line)
+    @activate(@collection.last().get('uid'))
+
+  activate: (uid) ->
+    $('.inboxline-active').removeClass('inboxline-active')
+    $('.conversation > ul').empty()
+    app.conversation.selectedConversation = uid
+    app.socket.emit('getMessageLog', uid)
+
+class InboxMenuView extends Backbone.View
+  tagName: 'li'
+  template: _.template $('#inbox-menu').html()
+  initialize: ->
+    #@collection.bind('all', @render)
+    $('.nav.pull-right').prepend(@el)
+    @render()
+  events: 'click': 'toggle'
+  render: =>
+    #count = (@collection.filter (m) -> m.get('online') and m.get('id') isnt app.user.id).length
+    $(@el).html(@template(messagecount: 0))
+  toggle: =>
+    $(@el).toggleClass('active')
+    $('.main').toggle()
+    return false
+
 class ChatApp
   constructor: ->
     @users = new Backbone.Collection()
-    @usersView = new UsersView(collection: @users)
-    @chatmenuView = new ChatMenuView(collection: @users)
+    @inbox = new Backbone.Collection()
+    @conversation = new Backbone.Collection()
     @socket = io.connect('/')
     @socket.on "error", (err) -> console.log err
     @socket.on "connected", (data) =>
       @user = data.user
       localStorage['uid'] = @user.id
+      @usersView = new UsersView(collection: @users)
+      @chatmenuView = new ChatMenuView(collection: @users)
+      @ConversationView = new ConversationView(collection: @conversation)
+      @inboxView = new InboxView(collection: @inbox)
+      @inboxmenuView = new InboxMenuView(collection: @inbox)
       $('.user-box').text(@user.name)
       $('.user-box').parent().prepend("<div class='clip'><img src='/img/avatar/#{@user.id}.jpeg' class='avatar' /></div>")
       $('.avatar').load -> $(@).addClass('avatar-wide') if @width > @height
       $('.login').fadeOut()
-      $('.container').fadeIn()
+      $('.openerp').fadeIn()
       @users.reset(u for u in data.users)
     if localStorage['uid']?
-      $('.container').fadeIn()
+      $('.openerp').fadeIn()
       @socket.emit "logged", uid: localStorage['uid']
     else
       $('.login').fadeIn()
@@ -160,12 +229,19 @@ class ChatApp
     @socket.on "pm", (data) =>
       dest = if data.from is @user.id then data.to else data.from
       @createChannel(dest) unless @channels[dest]?
+      uid = app.conversation.selectedConversation
+      data.time = new Date(data.time)
+      @conversation.add(data) if uid is data.from or uid is data.to
       @channels[dest].addMessage(data)
       unless document.hasFocus()
         document.title = "(#{++@unreadMsg}) OpenERP"
         document.getElementById("ting").play()
     @socket.on "messageLog", (data) =>
-      @channels[data.uid].addMessage(msg) for msg in data.msgs
+      d.time = new Date(d.time) for d in data.msgs
+      @conversation.reset(data.msgs)
+    @socket.on "lastMessages", (data) =>
+      d.time = new Date(d.time) for d in data
+      @inbox.reset(data.sort((a, b) -> b.time - a.time))
 
     $(window).focus => document.title = "OpenERP"; @unreadMsg = 0
   channels: {}

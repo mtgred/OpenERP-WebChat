@@ -39,6 +39,17 @@
   font-size: 18px;
   line-height: 16px;
 }
+.frame-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #dedede;
+  background: -moz-linear-gradient(#fcfcfc, #dedede);
+  background: -webkit-gradient(linear, left top, left bottom, from(#fcfcfc), to(#dedede));
+  border-bottom: 1px solid border-color !important;
+  padding: 5px;
+}
 .navbar .brand {
   margin-left: 0;
   padding: 8px 16px 8px;
@@ -176,18 +187,81 @@ textarea {
 .login input:-ms-input-placeholder {
   color: #fff;
 }
-.container {
+.openerp {
   display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
+.main {
+  display: none;
+  position: absolute;
+  left: 220px;
+  right: 0;
+  top: 37px;
+  bottom: 0;
+}
+.content {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.inbox {
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+  width: 350px;
+  background: #fff;
+  border-right: 1px solid #aeb9bd;
+  overflow: auto;
+}
+.inbox .frame-header {
+  border-bottom: 1px solid #aeb9bd;
+}
+.inbox ul > li {
+  padding: 6px;
+  border-bottom: 1px solid #aeb9bd;
+  cursor: pointer;
+}
+.inbox ul > li:hover {
+  background: #e8ebef;
+}
+.inbox ul > li.inboxline-active {
+  background: lightGrey;
+}
+.inbox .inboxline-content {
+  margin-left: 32px;
+  line-height: 16px;
+}
+.inbox .inboxline-content .time {
+  color: #999;
+}
+.conversation {
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+  width: 350px;
+  background: #fff;
+  border-right: 1px solid #aeb9bd;
+  overflow: auto;
+}
+.menu,
 .chatapp {
   width: 220px;
   position: fixed;
   top: 37px;
   bottom: 0;
-  right: 0;
   background: #e8ebef;
-  border-left: 1px solid #aeb9bd;
+  border-right: 1px solid #aeb9bd;
   vertical-align: top;
+}
+.chatapp {
+  right: 0;
+  border-left: 1px solid #aeb9bd;
 }
 .chatapp .users {
   margin-top: 35px;
@@ -221,18 +295,7 @@ textarea {
   top: 7px;
   right: 0;
 }
-.chatapp header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #dedede;
-  background: -moz-linear-gradient(#fcfcfc, #dedede);
-  background: -webkit-gradient(linear, left top, left bottom, from(#fcfcfc), to(#dedede));
-  border-bottom: 1px solid #aeb9bd;
-  padding: 5px;
-}
-.chatapp header .searchbox {
+.chatapp .frame-header .searchbox {
   width: 100%;
   padding: 1px 21px 1px 19px;
   font-size: 13px;
@@ -240,7 +303,7 @@ textarea {
   -webkit-border-radius: 13px;
   border-radius: 13px;
 }
-.chatapp header .search-icon {
+.chatapp .frame-header .search-icon {
   position: absolute;
   color: #888;
   top: 4px;
@@ -249,7 +312,7 @@ textarea {
   font-family: "entypoRegular" !important;
   font-weight: 300 !important;
 }
-.chatapp header .searchclear {
+.chatapp .frame-header .searchclear {
   display: none;
   position: absolute;
   right: 11px;
@@ -258,7 +321,7 @@ textarea {
   color: #b6b6b6;
   cursor: pointer;
 }
-.chatapp header .searchclear:hover {
+.chatapp .frame-header .searchclear:hover {
   color: #888;
 }
 .chat-windows {

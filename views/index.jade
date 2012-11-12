@@ -6,10 +6,10 @@ block body
     input(placeholder="Password", name="password", type="password")
     input.button.nice.small.red(type="submit", value="Login")
 
-  div.container
+  div.openerp
     div.navbar.navbar-fixed-top
       div.navbar-inner
-        a.brand(href="#") OpenERP Chat
+        a.brand(href="#") OpenERP
         ul.nav
 
         ul.nav.pull-right
@@ -21,9 +21,16 @@ block body
               li
                 a#logout(href="#t", data-toggle="modal") Log out
 
-    div.content
-      div.chatapp
-      ul.chat-windows
+    div.menu
+    div.main
+      div.frame-header
+        h4 Inbox
+      div.content
+        div.inbox
+        div.conversation
+
+    div.chatapp
+    ul.chat-windows
 
     script(type="text/template", id="chat-user")
       div.clip
@@ -32,15 +39,35 @@ block body
         <% if(online) { %> <img src="/img/green.png" class="online-status" /> <% } %>
 
     script(type="text/template", id="user-list")
-      header
+      div.frame-header
         span.oe_e.search-icon &ocirc;
         input.searchbox(placeholder="Search users...") 
         span.oe_e.searchclear [
       ul
 
+    script(type="text/template", id="conversation-line")
+      div.clip
+        img.avatar(src!="/img/avatar/<%= app.getUser(from).get('image') %>.jpeg")
+      div.inboxline-content
+        div.from.text-info <% print(app.getUser(from).get('name')) %>
+        div.time <%= time.toLocaleDateString() + ' ' + time.toLocaleTimeString() %>
+        | <%= msg %>
+
+    script(type="text/template", id="inbox-line")
+      div.clip
+        img.avatar(src!="/img/avatar/<%= app.getUser(uid).get('image') %>.jpeg")
+      div.inboxline-content
+        div.from.text-info <% print(app.getUser(uid).get('name')) %>
+        div.time <%= time.toLocaleDateString() + ' ' + time.toLocaleTimeString() %>
+        | <%= msg %>
+
     script(type="text/template", id="chat-menu")
       a(href="#") <%= usercount %>
         span.oe_e +
+
+    script(type="text/template", id="inbox-menu")
+      a(href="#") <%= messagecount %>
+        span.oe_e :
 
     script(type="text/template", id="chat-message")
       div.clip

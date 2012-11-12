@@ -13,9 +13,15 @@ db = mongoose.createConnection('localhost', 'webchat')
 messageSchema = new Schema
   from: String
   to: String
-  msg: [String]
+  msg: String
   time: { type: Date, default: Date.now }
 Message = db.model('Message', messageSchema)
+
+userSchema = new Schema
+  id: String
+  name: String
+  image: String
+User = db.model('User', userSchema)
 
 # Express
 app.configure ->
@@ -43,15 +49,26 @@ port = 8069
 lc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/common' })
 fc = xmlrpc.createClient({ host: host, port: port, path: '/xmlrpc/object' })
 users = {}
-fc.methodCall 'execute', [db,uid,pwd,'hr.employee','search',domain], (err, uids) ->
-  fc.methodCall 'execute', [db,uid,pwd,'hr.employee','read',uids, ['name','user_id','photo']], (err, empls) ->
-    for e in empls
-      if e.user_id
-        users[e.user_id[0]] = { name: e.name, id: e.user_id[0].toString(), image: 'avatar', online: false, messages: [], sids: [] }
-        if e.photo
-          users[e.user_id[0]].image = e.user_id[0]
-          fs.writeFile("public/img/avatar/#{e.user_id[0]}.jpeg", new Buffer(e.photo, "base64"), "binary", (err) -> console.log err if err)
-    console.log 'Ready'
+
+User.count {}, (err, count) ->
+  load = ->
+    User.find {}, (err, objs) ->
+      for u in objs
+        users[u.id] = { name: u.name, id: u.id, image: u.image, online: false, messages: [], sids: [] }
+      console.log 'Ready'
+  fetch = ->
+    fc.methodCall 'execute', [db,uid,pwd,'hr.employee','search',domain], (err, uids) ->
+      fc.methodCall 'execute', [db,uid,pwd,'hr.employee','read',uids, ['name','user_id','photo']], (err, empls) ->
+        for e in empls
+          if e.user_id
+            user = { name: e.name, id: e.user_id[0].toString(), image: 'avatar'}
+            if e.photo
+              user.image = e.user_id[0]
+              fs.writeFile "public/img/avatar/#{e.user_id[0]}.jpeg", new Buffer(e.photo, "base64"), "binary", (err) ->
+                console.error err if err
+            (new User(user)).save (err) -> console.error(err) if err
+    load()
+  if count is 0 then fetch() else load()
 
 app.get '/*', (req, res) -> res.render('index.jade', title: 'OpenERP')
 
@@ -65,6 +82,30 @@ io.sockets.on 'connection', (socket) ->
     socket.emit('connected', data)
     socket.emit('pm', msg) for msg in users[uid].messages
     users[uid].messages = []
+
+  sendMessageLog = (data) ->
+    Message.find().or([{from: socket.uid, to: data}, {from: data, to: socket.uid}]).exec (err, msgs) ->
+      console.error(err) if err
+      socket.emit('messageLog', {uid: data, msgs: msgs})
+
+  sendLastMessages = ->
+    mp =
+      map: ->
+        emit(@from, @) if @to is uid
+        emit(@to, @) if @from is uid
+      reduce: (k, v) ->
+        max = new Date(81,4,20)
+        val = null
+        v.forEach (msg) ->
+          if msg.time > max
+            max = msg.time
+            val = msg
+        return val
+      out: {replace: 'lastMessages'}
+      scope: {uid: socket.uid}
+    Message.mapReduce mp, (err, model) ->
+      if err then console.error(err) else model.find().exec (err, docs) ->
+        socket.emit('lastMessages', {uid: d._id, msg: d.value.msg, time: d.value.time} for d in docs)
 
   socket.on 'disconnect', ->
     if socket.uid?
@@ -84,13 +125,10 @@ io.sockets.on 'connection', (socket) ->
       io.sockets.socket(sid).emit('pm', d) for sid in users[d.to].sids
     else
       users[d.to].messages.push(d)
+    sendMessageLog()
+    sendLastMessages()
     io.sockets.socket(sid).emit('pm', d) for sid in users[d.from].sids
-  socket.on 'getMessageLog', (data) ->
-    uid = JSON.parse(data).uid
-    Message.find().or([{from: socket.uid, to: uid}, {from: uid, to: socket.uid}]).limit(50).exec (err, msgs) ->
-      console.error(err) if err
-      socket.emit('messageLog', {uid: uid, msgs: msgs})
-
-
+  socket.on 'getMessageLog', sendMessageLog
+  socket.on 'getLastMessages', sendLastMessages
 server.listen(3000)
 console.log('http://localhost:3000')
